@@ -1,0 +1,53 @@
+import express, { type Express, Router } from 'express';
+import pinoHttp from 'pino-http';
+import type { Logger } from 'pino';
+
+import type { Config } from './config';
+import { errorHandler } from './middleware/errorHandler';
+import { apiKeyAuth } from './middleware/apiKeyAuth';
+import { requireUserEntraId } from './middleware/userHeader';
+import type { DeliveryAdapter } from './adapters/types';
+import { MessageService } from './services/messageService';
+import { createMessagesRouter } from './routes/messages';
+import { createHealthRouter } from './routes/health';
+
+interface AppOptions {
+  config: Config;
+  logger: Logger;
+  adapter: DeliveryAdapter;
+  enableHttpLogging?: boolean;
+}
+
+export function createApp(options: AppOptions): Express {
+  const app = express();
+  const apiRouter = Router();
+  const startedAt = Date.now();
+
+  app.disable('x-powered-by');
+  app.use(express.json({ limit: '256kb' }));
+  if (options.enableHttpLogging ?? true) {
+    app.use(
+      pinoHttp({
+        logger: options.logger,
+        autoLogging: true,
+      }),
+    );
+  }
+
+  const messageService = new MessageService(options.adapter, options.logger);
+
+  apiRouter.use(createHealthRouter({
+    adapter: options.adapter,
+    version: options.config.version,
+    startedAt,
+  }));
+
+  apiRouter.use(apiKeyAuth(options.config.apiKey));
+  apiRouter.use(requireUserEntraId());
+  apiRouter.use(createMessagesRouter(messageService));
+
+  app.use('/api/v1', apiRouter);
+  app.use(errorHandler);
+
+  return app;
+}

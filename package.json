@@ -1,0 +1,37 @@
+{
+  "name": "teams-connector-poc",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minimal Teams Connector PoC for posting to Teams via Bot Framework",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "send:test": "node --import tsx scripts/send-test-message.ts",
+    "compose:up": "docker compose up --build",
+    "compose:down": "docker compose down"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "pino": "^9.14.0",
+    "pino-http": "^10.5.0",
+    "uuid": "^10.0.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.23",
+    "@types/node": "^22.18.1",
+    "node-mocks-http": "^1.17.2",
+    "supertest": "^7.1.4",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vitest": "^2.1.9"
+  }
+}
