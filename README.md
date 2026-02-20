@@ -4,7 +4,7 @@ Minimal TypeScript/Express proof-of-concept for posting notifications to Microso
 
 ## Scope
 
-Implemented in this PoC:
+Implemented:
 - `POST /api/v1/messages`
 - `GET /api/v1/health`
 - API key auth + required `X-User-Entra-Id` header
@@ -13,11 +13,8 @@ Implemented in this PoC:
   - `text`
   - `template` with `template=generic`
 
-Deferred from this PoC:
-- `POST /messages/batch`
-- `GET /targets`
+Deferred:
 - Graph membership checks and cache
-- Alias resolution from YAML
 - Additional content kinds/templates
 
 ## Prerequisites
@@ -82,16 +79,6 @@ Run container:
 ```bash
 docker run --rm -p 3000:3000 --env-file .env teams-connector-poc
 ```
-
-## OpenShift and GitOps
-
-Helm and Argo CD scaffolding is available in this repo:
-- Helm chart: `deploy/helm/teams-connector`
-- Argo CD manifests: `deploy/argocd`
-- GitOps repo templates: `deploy/gitops-example`
-
-Deployment guide:
-- `docs/openshift-argocd-gitops.md`
 
 ### Docker Compose
 
