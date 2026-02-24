@@ -2,9 +2,9 @@ import { randomUUID } from 'node:crypto';
 import type { Logger } from 'pino';
 
 import { ConnectorError } from '../errors';
-import { renderGenericTemplate } from '../templates/generic';
+import { renderTemplate } from '../templates';
 import type { MessageAccepted, SendMessageRequest } from '../types';
-import type { BotFrameworkActivity, DeliveryAdapter } from '../adapters/types';
+import type { BotFrameworkActivity, DeliveryAdapter, DeliveryPayload } from '../adapters/types';
 
 export class MessageService {
   constructor(
@@ -13,13 +13,8 @@ export class MessageService {
   ) {}
 
   async send(request: SendMessageRequest, userEntraId: string): Promise<MessageAccepted> {
-    const activity = this.buildActivity(request);
-
-    const deliveryResult = await this.adapter.send({
-      channelId: request.target.channelId,
-      teamId: request.target.teamId,
-      activity,
-    });
+    const payload = this.buildDeliveryPayload(request);
+    const deliveryResult = await this.adapter.send(payload);
 
     if (!deliveryResult.success) {
       throw new ConnectorError(
@@ -53,6 +48,33 @@ export class MessageService {
     return accepted;
   }
 
+  preview(request: SendMessageRequest, userEntraId: string): DeliveryPayload {
+    const payload = this.buildDeliveryPayload(request);
+
+    this.logger.info(
+      {
+        userEntraId,
+        teamId: payload.teamId,
+        channelId: payload.channelId,
+        contentKind: request.content.kind,
+        template: request.content.kind === 'template' ? request.content.template : undefined,
+        metadata: request.metadata,
+        mode: 'preview',
+      },
+      'Preview payload generated',
+    );
+
+    return payload;
+  }
+
+  private buildDeliveryPayload(request: SendMessageRequest): DeliveryPayload {
+    return {
+      channelId: request.target.channelId,
+      teamId: request.target.teamId,
+      activity: this.buildActivity(request),
+    };
+  }
+
   private buildActivity(request: SendMessageRequest): BotFrameworkActivity {
     if (request.content.kind === 'text') {
       return {
@@ -62,20 +84,16 @@ export class MessageService {
       };
     }
 
-    if (request.content.kind === 'template' && request.content.template === 'generic') {
-      const card = renderGenericTemplate(request.content.data);
+    const card = renderTemplate(request.content.template, request.content.data);
 
-      return {
-        type: 'message',
-        attachments: [
-          {
-            contentType: 'application/vnd.microsoft.card.adaptive',
-            content: card,
-          },
-        ],
-      };
-    }
-
-    throw new ConnectorError('VALIDATION_ERROR', 'Unsupported content kind for this PoC.', 400, false);
+    return {
+      type: 'message',
+      attachments: [
+        {
+          contentType: 'application/vnd.microsoft.card.adaptive',
+          content: card,
+        },
+      ],
+    };
   }
 }

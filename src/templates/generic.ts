@@ -1,8 +1,9 @@
 import { z } from 'zod';
 
 import type { AdaptiveCard, GenericTemplateData } from '../types';
+import { createBaseCard, createCardFrame, toTextColor } from './shared';
 
-const GenericSeveritySchema = z.enum(['critical', 'warning', 'info', 'success']).default('info');
+const GenericSeveritySchema = z.enum(['critical', 'warning', 'info', 'success']);
 
 export const GenericTemplateDataSchema = z.object({
   title: z.string().min(1),
@@ -11,77 +12,82 @@ export const GenericTemplateDataSchema = z.object({
   url: z.string().url().optional(),
   urlLabel: z.string().min(1).optional(),
   source: z.string().min(1).optional(),
-});
+}).strict();
 
-const severityStyles: Record<NonNullable<GenericTemplateData['severity']>, string> = {
+const severityStyles: Record<NonNullable<GenericTemplateData['severity']>, 'attention' | 'warning' | 'accent' | 'good'> = {
   critical: 'attention',
   warning: 'warning',
   info: 'accent',
   success: 'good',
 };
 
-export function renderGenericTemplate(input: unknown): AdaptiveCard {
-  const data = GenericTemplateDataSchema.parse(input);
-  const severity = data.severity ?? 'info';
-  const severityStyle = severityStyles[severity];
+const severityLabels: Record<NonNullable<GenericTemplateData['severity']>, string> = {
+  critical: '🔴 CRITICAL',
+  warning: '⚠️ WARNING',
+  info: 'INFO',
+  success: '✅ SUCCESS',
+};
 
-  const containerItems: Array<Record<string, unknown>> = [
-    {
+export function renderGenericTemplate(data: GenericTemplateData): AdaptiveCard {
+  const severity = data.severity ?? 'info';
+  const contentItems: Array<Record<string, unknown>> = [];
+
+  if (severity !== 'info') {
+    contentItems.push({
       type: 'TextBlock',
-      text: data.title,
+      text: severityLabels[severity],
+      size: 'Small',
+      color: toTextColor(severityStyles[severity]),
       weight: 'Bolder',
+      spacing: 'None',
+    });
+  }
+
+  contentItems.push({
+    type: 'TextBlock',
+    text: data.title,
+    weight: 'Bolder',
+    size: 'Large',
+    wrap: true,
+    spacing: severity === 'info' ? 'None' : 'Small',
+  });
+
+  if (data.source) {
+    contentItems.push({
+      type: 'TextBlock',
+      text: data.source,
+      size: 'Small',
+      isSubtle: true,
+      spacing: 'None',
       wrap: true,
-      size: 'Medium',
-    },
-  ];
+    });
+  }
 
   if (data.body) {
-    containerItems.push({
+    contentItems.push({
       type: 'TextBlock',
       text: data.body,
       wrap: true,
+      size: 'Small',
+      spacing: 'Medium',
     });
   }
-
-  if (data.source) {
-    containerItems.push({
-      type: 'TextBlock',
-      text: data.source,
-      isSubtle: true,
-      spacing: 'Small',
-      wrap: true,
-    });
-  }
-
-  const body: Array<Record<string, unknown>> = [
-    {
-      type: 'Container',
-      style: severityStyle,
-      bleed: true,
-      items: containerItems,
-    },
-  ];
-
-  const actions: Array<Record<string, unknown>> = [];
 
   if (data.url) {
-    actions.push({
-      type: 'Action.OpenUrl',
-      title: data.urlLabel ?? 'View Details',
-      url: data.url,
+    contentItems.push({
+      type: 'ActionSet',
+      spacing: 'Medium',
+      actions: [
+        {
+          type: 'Action.OpenUrl',
+          title: data.urlLabel ?? 'View Details',
+          url: data.url,
+        },
+      ],
     });
   }
 
-  const card: AdaptiveCard = {
-    type: 'AdaptiveCard',
-    '$schema': 'http://adaptivecards.io/schemas/adaptive-card.json',
-    version: '1.4',
-    body,
-  };
+  const body: Array<Record<string, unknown>> = [createCardFrame(severityStyles[severity], contentItems)];
 
-  if (actions.length > 0) {
-    card.actions = actions;
-  }
-
-  return card;
+  return createBaseCard(body);
 }

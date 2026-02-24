@@ -2,9 +2,20 @@ import pino from 'pino';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createApp } from '../../src/app';
-import type { Config } from '../../src/config';
 import type { DeliveryAdapter } from '../../src/adapters/types';
+import type { Config } from '../../src/config';
+import type { TemplateName } from '../../src/types';
 import { invokeApp } from './httpHarness';
+
+const target = {
+  teamId: '00000000-0000-0000-0000-000000000000',
+  channelId: '19:abc@thread.tacv2',
+};
+
+const authHeaders = {
+  authorization: 'Bearer test-api-key',
+  'x-user-entra-id': '11111111-1111-1111-1111-111111111111',
+};
 
 describe('messages endpoint', () => {
   const config: Config = {
@@ -27,26 +38,24 @@ describe('messages endpoint', () => {
     };
   });
 
-  it('returns 202 for valid message requests', async () => {
-    const app = createApp({
+  function createTestApp() {
+    return createApp({
       config,
       adapter,
       logger: pino({ enabled: false }),
       enableHttpLogging: false,
     });
+  }
+
+  it('returns 202 for valid text requests', async () => {
+    const app = createTestApp();
 
     const response = await invokeApp(app, {
       method: 'POST',
       path: '/api/v1/messages',
-      headers: {
-        authorization: 'Bearer test-api-key',
-        'x-user-entra-id': '11111111-1111-1111-1111-111111111111',
-      },
+      headers: authHeaders,
       body: {
-        target: {
-          teamId: '00000000-0000-0000-0000-000000000000',
-          channelId: '19:abc@thread.tacv2',
-        },
+        target,
         content: {
           kind: 'text',
           text: 'hello',
@@ -62,19 +71,83 @@ describe('messages endpoint', () => {
     expect(typeof body.timestamp).toBe('string');
   });
 
-  it('rejects missing api key', async () => {
-    const app = createApp({
-      config,
-      adapter,
-      logger: pino({ enabled: false }),
-      enableHttpLogging: false,
+  it('returns preview payload without posting to adapter for text requests', async () => {
+    const sendMock = vi.fn().mockResolvedValue({ success: true, teamsMessageId: 'abc' });
+    adapter.send = sendMock;
+    const app = createTestApp();
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages/preview',
+      headers: authHeaders,
+      body: {
+        target,
+        content: {
+          kind: 'text',
+          text: 'hello from preview',
+        },
+      },
     });
+
+    expect(response.status).toBe(200);
+    expect(sendMock).not.toHaveBeenCalled();
+
+    const body = response.body as Record<string, unknown>;
+    expect(body.mode).toBe('preview');
+
+    const payload = body.payload as Record<string, unknown>;
+    expect(payload.teamId).toBe(target.teamId);
+    expect(payload.channelId).toBe(target.channelId);
+    expect(payload.activity).toEqual({
+      type: 'message',
+      text: 'hello from preview',
+      textFormat: 'xml',
+    });
+  });
+
+  it('returns preview adaptive-card activity for template requests', async () => {
+    const sendMock = vi.fn().mockResolvedValue({ success: true, teamsMessageId: 'abc' });
+    adapter.send = sendMock;
+    const app = createTestApp();
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages/preview',
+      headers: authHeaders,
+      body: {
+        target,
+        content: {
+          kind: 'template',
+          template: 'sysdig',
+          data: {
+            severity: 'high',
+            alertName: 'CPU saturation',
+          },
+        },
+      },
+    });
+
+    expect(response.status).toBe(200);
+    expect(sendMock).not.toHaveBeenCalled();
+
+    const body = response.body as Record<string, unknown>;
+    const payload = body.payload as Record<string, unknown>;
+    const activity = payload.activity as Record<string, unknown>;
+
+    expect(activity.text).toBeUndefined();
+    expect(activity.textFormat).toBeUndefined();
+    expect(Array.isArray(activity.attachments)).toBe(true);
+    expect((activity.attachments as Array<unknown>).length).toBe(1);
+  });
+
+  it('rejects missing api key', async () => {
+    const app = createTestApp();
 
     const response = await invokeApp(app, {
       method: 'POST',
       path: '/api/v1/messages',
       headers: {
-        'x-user-entra-id': '11111111-1111-1111-1111-111111111111',
+        'x-user-entra-id': authHeaders['x-user-entra-id'],
       },
       body: {},
     });
@@ -86,19 +159,14 @@ describe('messages endpoint', () => {
   });
 
   it('rejects invalid api key', async () => {
-    const app = createApp({
-      config,
-      adapter,
-      logger: pino({ enabled: false }),
-      enableHttpLogging: false,
-    });
+    const app = createTestApp();
 
     const response = await invokeApp(app, {
       method: 'POST',
       path: '/api/v1/messages',
       headers: {
         authorization: 'Bearer wrong-key',
-        'x-user-entra-id': '11111111-1111-1111-1111-111111111111',
+        'x-user-entra-id': authHeaders['x-user-entra-id'],
       },
       body: {},
     });
@@ -110,18 +178,13 @@ describe('messages endpoint', () => {
   });
 
   it('rejects missing user id header', async () => {
-    const app = createApp({
-      config,
-      adapter,
-      logger: pino({ enabled: false }),
-      enableHttpLogging: false,
-    });
+    const app = createTestApp();
 
     const response = await invokeApp(app, {
       method: 'POST',
       path: '/api/v1/messages',
       headers: {
-        authorization: 'Bearer test-api-key',
+        authorization: authHeaders.authorization,
       },
       body: {},
     });
@@ -133,23 +196,15 @@ describe('messages endpoint', () => {
   });
 
   it('rejects invalid payload shape', async () => {
-    const app = createApp({
-      config,
-      adapter,
-      logger: pino({ enabled: false }),
-      enableHttpLogging: false,
-    });
+    const app = createTestApp();
 
     const response = await invokeApp(app, {
       method: 'POST',
       path: '/api/v1/messages',
-      headers: {
-        authorization: 'Bearer test-api-key',
-        'x-user-entra-id': '11111111-1111-1111-1111-111111111111',
-      },
+      headers: authHeaders,
       body: {
         target: {
-          teamId: '00000000-0000-0000-0000-000000000000',
+          teamId: target.teamId,
         },
         content: {
           kind: 'text',
@@ -173,25 +228,14 @@ describe('messages endpoint', () => {
       httpStatus: 502,
     });
 
-    const app = createApp({
-      config,
-      adapter,
-      logger: pino({ enabled: false }),
-      enableHttpLogging: false,
-    });
+    const app = createTestApp();
 
     const response = await invokeApp(app, {
       method: 'POST',
       path: '/api/v1/messages',
-      headers: {
-        authorization: 'Bearer test-api-key',
-        'x-user-entra-id': '11111111-1111-1111-1111-111111111111',
-      },
+      headers: authHeaders,
       body: {
-        target: {
-          teamId: '00000000-0000-0000-0000-000000000000',
-          channelId: '19:abc@thread.tacv2',
-        },
+        target,
         content: {
           kind: 'text',
           text: 'hello',
@@ -206,49 +250,151 @@ describe('messages endpoint', () => {
     expect(body.retryable).toBe(true);
   });
 
-  it('sends generic template as attachment-only activity', async () => {
-    const sendMock = vi.fn().mockResolvedValue({ success: true, teamsMessageId: 'abc' });
-    adapter.send = sendMock;
-
-    const app = createApp({
-      config,
-      adapter,
-      logger: pino({ enabled: false }),
-      enableHttpLogging: false,
-    });
+  it('returns 400 for invalid template data instead of 500', async () => {
+    const app = createTestApp();
 
     const response = await invokeApp(app, {
       method: 'POST',
       path: '/api/v1/messages',
-      headers: {
-        authorization: 'Bearer test-api-key',
-        'x-user-entra-id': '11111111-1111-1111-1111-111111111111',
-      },
+      headers: authHeaders,
       body: {
-        target: {
-          teamId: '00000000-0000-0000-0000-000000000000',
-          channelId: '19:abc@thread.tacv2',
-        },
+        target,
         content: {
           kind: 'template',
-          template: 'generic',
+          template: 'sysdig',
           data: {
-            title: 'Maintenance Window',
-            body: 'DB maintenance in 30 minutes.',
-            severity: 'warning',
+            severity: 'high',
+            alertName: 'CPU saturation',
+            unexpected: 'extra',
           },
         },
       },
     });
 
-    expect(response.status).toBe(202);
-    expect(sendMock).toHaveBeenCalledTimes(1);
+    expect(response.status).toBe(400);
+    const body = response.body as Record<string, unknown>;
+    expect(body.code).toBe('VALIDATION_ERROR');
+  });
 
-    const call = sendMock.mock.calls[0]?.[0] as Record<string, unknown>;
-    const activity = call.activity as Record<string, unknown>;
-    expect(activity.text).toBeUndefined();
-    expect(activity.textFormat).toBeUndefined();
-    expect(Array.isArray(activity.attachments)).toBe(true);
-    expect((activity.attachments as Array<unknown>).length).toBe(1);
+  it('returns 400 for invalid preview template data', async () => {
+    const app = createTestApp();
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages/preview',
+      headers: authHeaders,
+      body: {
+        target,
+        content: {
+          kind: 'template',
+          template: 'sysdig',
+          data: {
+            severity: 'high',
+            alertName: 'CPU saturation',
+            unexpected: 'extra',
+          },
+        },
+      },
+    });
+
+    expect(response.status).toBe(400);
+    const body = response.body as Record<string, unknown>;
+    expect(body.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('sends each supported template as attachment-only activity', async () => {
+    const sendMock = vi.fn().mockResolvedValue({ success: true, teamsMessageId: 'abc' });
+    adapter.send = sendMock;
+
+    const app = createTestApp();
+
+    const templatePayloads: Array<{ template: TemplateName; data: Record<string, unknown> }> = [
+      {
+        template: 'generic',
+        data: {
+          title: 'Maintenance Window',
+          body: 'DB maintenance in 30 minutes.',
+          severity: 'warning',
+        },
+      },
+      {
+        template: 'github',
+        data: {
+          event: 'opened',
+          title: 'PR #123',
+          repo: 'org/repo',
+          author: 'octocat',
+          url: 'https://github.com/org/repo/pull/123',
+        },
+      },
+      {
+        template: 'sysdig',
+        data: {
+          severity: 'high',
+          alertName: 'CPU saturation',
+          timestamp: '2026-02-22T12:00:00Z',
+        },
+      },
+      {
+        template: 'uptime',
+        data: {
+          status: 'degraded',
+          service: 'payments-api',
+          responseTimeMs: 640,
+        },
+      },
+      {
+        template: 'db_backup',
+        data: {
+          status: 'success',
+          database: 'users',
+          duration: '2m 03s',
+          size: '1.2 GB',
+          container: 'backup-job-1',
+        },
+      },
+      {
+        template: 'argocd',
+        data: {
+          event: 'sync_failed',
+          application: 'platform-registry-prod',
+          syncStatus: 'OutOfSync',
+          healthStatus: 'Degraded',
+          revision: 'f4e5d6c',
+          message: 'ComparisonError: exceeded timeout waiting for condition',
+          url: 'https://argocd.example.com/applications/platform-registry-prod',
+        },
+      },
+    ];
+
+    for (const payload of templatePayloads) {
+      const response = await invokeApp(app, {
+        method: 'POST',
+        path: '/api/v1/messages',
+        headers: authHeaders,
+        body: {
+          target,
+          content: {
+            kind: 'template',
+            template: payload.template,
+            data: payload.data,
+          },
+        },
+      });
+
+      expect(response.status).toBe(202);
+    }
+
+    expect(sendMock).toHaveBeenCalledTimes(templatePayloads.length);
+
+    for (const call of sendMock.mock.calls) {
+      const args = call[0] as Record<string, unknown>;
+      const activity = args.activity as Record<string, unknown>;
+
+      expect(activity.text).toBeUndefined();
+      expect(activity.textFormat).toBeUndefined();
+      expect(Array.isArray(activity.attachments)).toBe(true);
+      expect((activity.attachments as Array<unknown>).length).toBe(1);
+    }
   });
 });

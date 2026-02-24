@@ -6,12 +6,13 @@ Minimal TypeScript/Express proof-of-concept for posting notifications to Microso
 
 Implemented:
 - `POST /api/v1/messages`
+- `POST /api/v1/messages/preview` (validate + render payload only, no Bot Framework delivery)
 - `GET /api/v1/health`
 - API key auth + required `X-User-Entra-Id` header
 - Explicit `teamId + channelId` targeting
 - Content kinds:
   - `text`
-  - `template` with `template=generic`
+  - `template` with `template=generic|github|sysdig|uptime|db_backup|argocd`
 
 Deferred:
 - Graph membership checks and cache
@@ -121,6 +122,29 @@ curl -X POST http://localhost:3000/api/v1/messages \
   }'
 ```
 
+### Preview payload without sending to Teams
+
+```bash
+curl -X POST http://localhost:3000/api/v1/messages/preview \
+  -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
+  -H "X-User-Entra-Id: ${USER_ENTRA_ID}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target": {
+      "teamId": "00000000-0000-0000-0000-000000000000",
+      "channelId": "19:abc123@thread.tacv2"
+    },
+    "content": {
+      "kind": "template",
+      "template": "sysdig",
+      "data": {
+        "severity": "high",
+        "alertName": "CPU saturation"
+      }
+    }
+  }'
+```
+
 ### Send generic template message
 
 ```bash
@@ -141,6 +165,143 @@ curl -X POST http://localhost:3000/api/v1/messages \
         "severity": "warning",
         "body": "DB maintenance in 30 minutes.",
         "url": "https://status.example.com"
+      }
+    }
+  }'
+```
+
+### Send GitHub template message
+
+```bash
+curl -X POST http://localhost:3000/api/v1/messages \
+  -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
+  -H "X-User-Entra-Id: ${USER_ENTRA_ID}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target": {
+      "teamId": "00000000-0000-0000-0000-000000000000",
+      "channelId": "19:abc123@thread.tacv2"
+    },
+    "content": {
+      "kind": "template",
+      "template": "github",
+      "data": {
+        "event": "opened",
+        "title": "PR #123: Improve alert rendering",
+        "repo": "bcgov/devx-teams-connector",
+        "author": "octocat",
+        "url": "https://github.com/bcgov/devx-teams-connector/pull/123",
+        "body": "Adds support for additional adaptive card templates."
+      }
+    }
+  }'
+```
+
+### Send Sysdig template message
+
+```bash
+curl -X POST http://localhost:3000/api/v1/messages \
+  -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
+  -H "X-User-Entra-Id: ${USER_ENTRA_ID}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target": {
+      "teamId": "00000000-0000-0000-0000-000000000000",
+      "channelId": "19:abc123@thread.tacv2"
+    },
+    "content": {
+      "kind": "template",
+      "template": "sysdig",
+      "data": {
+        "severity": "high",
+        "alertName": "CPU saturation",
+        "scope": "prod-cluster",
+        "description": "Sustained CPU > 90% for 5 minutes",
+        "timestamp": "2026-02-22T12:00:00Z",
+        "url": "https://app.sysdig.com/#/alerts"
+      }
+    }
+  }'
+```
+
+### Send uptime template message
+
+```bash
+curl -X POST http://localhost:3000/api/v1/messages \
+  -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
+  -H "X-User-Entra-Id: ${USER_ENTRA_ID}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target": {
+      "teamId": "00000000-0000-0000-0000-000000000000",
+      "channelId": "19:abc123@thread.tacv2"
+    },
+    "content": {
+      "kind": "template",
+      "template": "uptime",
+      "data": {
+        "status": "degraded",
+        "service": "payments-api",
+        "responseTimeMs": 620,
+        "downSince": "2026-02-22T11:40:00Z",
+        "url": "https://status.example.com/payments-api"
+      }
+    }
+  }'
+```
+
+### Send DB backup template message
+
+```bash
+curl -X POST http://localhost:3000/api/v1/messages \
+  -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
+  -H "X-User-Entra-Id: ${USER_ENTRA_ID}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target": {
+      "teamId": "00000000-0000-0000-0000-000000000000",
+      "channelId": "19:abc123@thread.tacv2"
+    },
+    "content": {
+      "kind": "template",
+      "template": "db_backup",
+      "data": {
+        "status": "success",
+        "database": "users",
+        "duration": "2m 03s",
+        "size": "1.2 GB",
+        "message": "Backup completed",
+        "container": "backup-job-1"
+      }
+    }
+  }'
+```
+
+### Send Argo CD template message
+
+```bash
+curl -X POST http://localhost:3000/api/v1/messages \
+  -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
+  -H "X-User-Entra-Id: ${USER_ENTRA_ID}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target": {
+      "teamId": "00000000-0000-0000-0000-000000000000",
+      "channelId": "19:abc123@thread.tacv2"
+    },
+    "content": {
+      "kind": "template",
+      "template": "argocd",
+      "data": {
+        "event": "sync_failed",
+        "application": "platform-registry-prod",
+        "syncStatus": "OutOfSync",
+        "healthStatus": "Degraded",
+        "revision": "f4e5d6c",
+        "target": "abc123-prod",
+        "timestamp": "2026-02-22T12:00:00Z",
+        "message": "ComparisonError: failed to sync Deployment/api-gateway",
+        "url": "https://argocd.example.com/applications/platform-registry-prod"
       }
     }
   }'
@@ -170,10 +331,46 @@ Send text:
 npm run send:test -- --type text --message "Hello from script"
 ```
 
+Preview mode (does not post to Bot Framework):
+
+```bash
+npm run send:test -- --preview --type template --template sysdig --severity high --alertName "CPU saturation"
+```
+
 Send generic template:
 
 ```bash
-npm run send:test -- --type template --title "Maintenance Window" --body "DB maintenance in 30 minutes." --severity warning
+npm run send:test -- --type template --template generic --title "Maintenance Window" --body "DB maintenance in 30 minutes." --severity warning
+```
+
+Send GitHub template:
+
+```bash
+npm run send:test -- --type template --template github --event opened --title "PR #123" --repo "bcgov/devx-teams-connector" --author "octocat" --url "https://github.com/bcgov/devx-teams-connector/pull/123"
+```
+
+Send Sysdig template:
+
+```bash
+npm run send:test -- --type template --template sysdig --severity high --alertName "CPU saturation" --scope "prod-cluster" --timestamp "2026-02-22T12:00:00Z"
+```
+
+Send uptime template:
+
+```bash
+npm run send:test -- --type template --template uptime --status degraded --service "payments-api" --responseTimeMs 620 --downSince "2026-02-22T11:40:00Z"
+```
+
+Send DB backup template:
+
+```bash
+npm run send:test -- --type template --template db_backup --status success --database "users" --duration "2m 03s" --size "1.2 GB" --container "backup-job-1"
+```
+
+Send Argo CD template:
+
+```bash
+npm run send:test -- --type template --template argocd --event sync_failed --application "platform-registry-prod" --syncStatus OutOfSync --healthStatus Degraded --revision "f4e5d6c" --targetName "abc123-prod" --url "https://argocd.example.com/applications/platform-registry-prod"
 ```
 
 Script env vars:

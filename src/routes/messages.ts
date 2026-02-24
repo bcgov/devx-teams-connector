@@ -18,5 +18,20 @@ export function createMessagesRouter(messageService: MessageService): Router {
     }
   });
 
+  router.post('/messages/preview', async (req, res, next) => {
+    try {
+      const validatedRequest = validateSendMessageRequest(req.body);
+      const userEntraId = String(res.locals.userEntraId);
+      const payload = messageService.preview(validatedRequest, userEntraId);
+
+      res.status(200).json({
+        mode: 'preview',
+        payload,
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   return router;
 }
