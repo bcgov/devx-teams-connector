@@ -195,6 +195,61 @@ describe('messages endpoint', () => {
     expect(body.code).toBe('AUTH_FAILED');
   });
 
+  it('rejects missing api key for preview', async () => {
+    const app = createTestApp();
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages/preview',
+      headers: {
+        'x-user-entra-id': authHeaders['x-user-entra-id'],
+      },
+      body: {},
+    });
+
+    const body = response.body as Record<string, unknown>;
+
+    expect(response.status).toBe(401);
+    expect(body.code).toBe('AUTH_FAILED');
+  });
+
+  it('rejects invalid api key for preview', async () => {
+    const app = createTestApp();
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages/preview',
+      headers: {
+        authorization: 'Bearer wrong-key',
+        'x-user-entra-id': authHeaders['x-user-entra-id'],
+      },
+      body: {},
+    });
+
+    const body = response.body as Record<string, unknown>;
+
+    expect(response.status).toBe(401);
+    expect(body.code).toBe('AUTH_FAILED');
+  });
+
+  it('rejects missing user id header for preview', async () => {
+    const app = createTestApp();
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages/preview',
+      headers: {
+        authorization: authHeaders.authorization,
+      },
+      body: {},
+    });
+
+    const body = response.body as Record<string, unknown>;
+
+    expect(response.status).toBe(401);
+    expect(body.code).toBe('AUTH_FAILED');
+  });
+
   it('rejects invalid payload shape', async () => {
     const app = createTestApp();
 

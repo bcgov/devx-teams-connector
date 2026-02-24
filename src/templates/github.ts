@@ -12,12 +12,6 @@ export const GitHubTemplateDataSchema = z.object({
   body: z.string().optional(),
 }).strict();
 
-const eventStyles: Record<GitHubTemplateData['event'], 'accent' | 'good' | 'attention'> = {
-  merged: 'accent',
-  opened: 'good',
-  closed: 'attention',
-};
-
 const eventBadges: Record<GitHubTemplateData['event'], string> = {
   opened: 'Pull Request Opened',
   merged: 'Pull Request Merged',
@@ -86,9 +80,7 @@ export function renderGitHubTemplate(data: GitHubTemplateData): AdaptiveCard {
     ],
   });
 
-  const body: Array<Record<string, unknown>> = [
-    createCardFrame(eventStyles[data.event], contentItems),
-  ];
+  const body: Array<Record<string, unknown>> = [createCardFrame(contentItems)];
 
   return createBaseCard(body);
 }

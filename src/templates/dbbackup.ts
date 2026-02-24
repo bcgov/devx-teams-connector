@@ -78,9 +78,7 @@ export function renderDbBackupTemplate(data: DbBackupTemplateData): AdaptiveCard
     contentItems.push(factSet);
   }
 
-  const body: Array<Record<string, unknown>> = [
-    createCardFrame(statusStyles[data.status], contentItems),
-  ];
+  const body: Array<Record<string, unknown>> = [createCardFrame(contentItems)];
 
   return createBaseCard(body);
 }

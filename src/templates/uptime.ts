@@ -1,12 +1,14 @@
 import { z } from 'zod';
 
 import type { AdaptiveCard, UptimeTemplateData } from '../types';
-import { createBaseCard, createCardFrame, createFactSet, createSectionSeparator, formatRelativeTimeOrIso } from './shared';
-
-const IsoTimestampSchema = z.union([
-  z.string().datetime({ offset: true }),
-  z.string().datetime(),
-]);
+import {
+  IsoTimestampSchema,
+  createBaseCard,
+  createCardFrame,
+  createFactSet,
+  createSectionSeparator,
+  formatRelativeTimeOrIso,
+} from './shared';
 
 export const UptimeTemplateDataSchema = z.object({
   status: z.enum(['up', 'degraded', 'down']),
@@ -15,12 +17,6 @@ export const UptimeTemplateDataSchema = z.object({
   downSince: IsoTimestampSchema.optional(),
   url: z.string().url().optional(),
 }).strict();
-
-const statusStyles: Record<UptimeTemplateData['status'], 'good' | 'warning' | 'attention'> = {
-  up: 'good',
-  degraded: 'warning',
-  down: 'attention',
-};
 
 const statusBadges: Record<UptimeTemplateData['status'], string> = {
   up: '🟢 UP',
@@ -116,9 +112,7 @@ export function renderUptimeTemplate(data: UptimeTemplateData): AdaptiveCard {
     });
   }
 
-  const body: Array<Record<string, unknown>> = [
-    createCardFrame(statusStyles[data.status], contentItems),
-  ];
+  const body: Array<Record<string, unknown>> = [createCardFrame(contentItems)];
 
   return createBaseCard(body);
 }

@@ -87,7 +87,7 @@ export function renderGenericTemplate(data: GenericTemplateData): AdaptiveCard {
     });
   }
 
-  const body: Array<Record<string, unknown>> = [createCardFrame(severityStyles[severity], contentItems)];
+  const body: Array<Record<string, unknown>> = [createCardFrame(contentItems)];
 
   return createBaseCard(body);
 }

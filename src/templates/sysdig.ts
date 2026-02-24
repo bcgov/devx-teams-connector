@@ -1,12 +1,14 @@
 import { z } from 'zod';
 
 import type { AdaptiveCard, SysdigTemplateData } from '../types';
-import { createBaseCard, createCardFrame, createFactSet, createSectionSeparator, formatRelativeTimeOrIso } from './shared';
-
-const IsoTimestampSchema = z.union([
-  z.string().datetime({ offset: true }),
-  z.string().datetime(),
-]);
+import {
+  IsoTimestampSchema,
+  createBaseCard,
+  createCardFrame,
+  createFactSet,
+  createSectionSeparator,
+  formatRelativeTimeOrIso,
+} from './shared';
 
 export const SysdigTemplateDataSchema = z.object({
   severity: z.enum(['critical', 'high', 'medium', 'low', 'info']),
@@ -16,14 +18,6 @@ export const SysdigTemplateDataSchema = z.object({
   timestamp: IsoTimestampSchema.optional(),
   url: z.string().url().optional(),
 }).strict();
-
-const severityStyles: Record<SysdigTemplateData['severity'], 'attention' | 'warning' | 'accent' | 'default'> = {
-  critical: 'attention',
-  high: 'warning',
-  medium: 'warning',
-  low: 'accent',
-  info: 'default',
-};
 
 const severityFactLabels: Record<SysdigTemplateData['severity'], string> = {
   critical: '🔴 Critical',
@@ -124,9 +118,7 @@ export function renderSysdigTemplate(data: SysdigTemplateData): AdaptiveCard {
     });
   }
 
-  const body: Array<Record<string, unknown>> = [
-    createCardFrame(severityStyles[data.severity], contentItems),
-  ];
+  const body: Array<Record<string, unknown>> = [createCardFrame(contentItems)];
 
   return createBaseCard(body);
 }

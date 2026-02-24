@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 import type { AdaptiveCard } from '../types';
 
 export type AdaptiveContainerStyle = 'default' | 'accent' | 'good' | 'warning' | 'attention';
@@ -11,6 +13,11 @@ interface FactEntry {
 }
 
 const relativeTimeFormatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+
+export const IsoTimestampSchema = z.union([
+  z.string().datetime({ offset: true }),
+  z.string().datetime(),
+]);
 
 function toCategoryTextColor(style: AdaptiveContainerStyle): AdaptiveTextColor {
   switch (style) {
@@ -31,12 +38,7 @@ export function toTextColor(style: AdaptiveContainerStyle): AdaptiveTextColor {
   return toCategoryTextColor(style);
 }
 
-export function createCardFrame(
-  style: AdaptiveContainerStyle,
-  items: Array<Record<string, unknown>>,
-): Record<string, unknown> {
-  void style;
-
+export function createCardFrame(items: Array<Record<string, unknown>>): Record<string, unknown> {
   return {
     type: 'ColumnSet',
     columns: [
@@ -47,122 +49,6 @@ export function createCardFrame(
         items,
       },
     ],
-  };
-}
-
-export interface HeaderContainerOptions {
-  topLine?: string;
-  extraItems?: Array<Record<string, unknown>>;
-  actions?: Array<Record<string, unknown>>;
-}
-
-export function createHeaderContainer(
-  title: string,
-  style: AdaptiveContainerStyle,
-  subtitle?: string,
-  category?: string,
-  badge?: string,
-  options?: HeaderContainerOptions,
-): Record<string, unknown> {
-  const contentItems: Array<Record<string, unknown>> = [];
-
-  if (options?.topLine) {
-    contentItems.push({
-      type: 'TextBlock',
-      text: options.topLine,
-      size: 'Small',
-      isSubtle: true,
-      spacing: 'None',
-    });
-  }
-
-  if (category || badge) {
-    const columns: Array<Record<string, unknown>> = [];
-
-    if (category) {
-      columns.push({
-        type: 'Column',
-        width: 'stretch',
-        items: [
-          {
-            type: 'TextBlock',
-            text: category,
-            size: 'Small',
-            weight: 'Bolder',
-            color: toCategoryTextColor(style),
-            wrap: true,
-            spacing: 'None',
-          },
-        ],
-      });
-    } else {
-      columns.push({
-        type: 'Column',
-        width: 'stretch',
-        items: [{ type: 'TextBlock', text: ' ', spacing: 'None' }],
-      });
-    }
-
-    if (badge) {
-      columns.push({
-        type: 'Column',
-        width: 'auto',
-        items: [
-          {
-            type: 'TextBlock',
-            text: badge,
-            size: 'Small',
-            isSubtle: true,
-            horizontalAlignment: 'Right',
-            wrap: false,
-            spacing: 'None',
-          },
-        ],
-      });
-    }
-
-    contentItems.push({
-      type: 'ColumnSet',
-      spacing: 'None',
-      columns,
-    });
-  }
-
-  contentItems.push({
-    type: 'TextBlock',
-    text: title,
-    weight: 'Bolder',
-    wrap: true,
-    size: 'Large',
-    spacing: category || badge ? 'Small' : 'None',
-  });
-
-  if (subtitle) {
-    contentItems.push({
-      type: 'TextBlock',
-      text: subtitle,
-      size: 'Small',
-      isSubtle: true,
-      wrap: true,
-      spacing: 'None',
-    });
-  }
-
-  if (options?.extraItems) {
-    contentItems.push(...options.extraItems);
-  }
-
-  if (options?.actions && options.actions.length > 0) {
-    contentItems.push({
-      type: 'ActionSet',
-      spacing: 'Medium',
-      actions: options.actions,
-    });
-  }
-
-  return {
-    type: 'Container',
-    items: contentItems,
   };
 }
 

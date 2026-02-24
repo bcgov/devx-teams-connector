@@ -1,12 +1,15 @@
 import { z } from 'zod';
 
 import type { AdaptiveCard, ArgoCdTemplateData } from '../types';
-import { createBaseCard, createCardFrame, createSectionSeparator, formatRelativeTimeOrIso, toTextColor } from './shared';
-
-const IsoTimestampSchema = z.union([
-  z.string().datetime({ offset: true }),
-  z.string().datetime(),
-]);
+import {
+  IsoTimestampSchema,
+  createBaseCard,
+  createCardFrame,
+  createFactSet,
+  createSectionSeparator,
+  formatRelativeTimeOrIso,
+  toTextColor,
+} from './shared';
 
 export const ArgoCdTemplateDataSchema = z.object({
   event: z.enum(['sync_succeeded', 'sync_failed', 'out_of_sync']),
@@ -112,25 +115,6 @@ function createStatusPills(sync: string | undefined, health: string | undefined)
   };
 }
 
-function createArgoFactSet(entries: Array<{ title: string; value?: string }>): Record<string, unknown> | null {
-  const facts = entries
-    .filter((entry) => entry.value !== undefined && entry.value !== null && entry.value !== '')
-    .map((entry) => ({
-      title: `${entry.title}:`,
-      value: String(entry.value),
-    }));
-
-  if (facts.length === 0) {
-    return null;
-  }
-
-  return {
-    type: 'FactSet',
-    facts,
-    spacing: 'Medium',
-  };
-}
-
 export function renderArgoCdTemplate(data: ArgoCdTemplateData): AdaptiveCard {
   const contentItems: Array<Record<string, unknown>> = [
     {
@@ -177,7 +161,7 @@ export function renderArgoCdTemplate(data: ArgoCdTemplateData): AdaptiveCard {
     });
   }
 
-  const factSet = createArgoFactSet([
+  const factSet = createFactSet([
     {
       title: 'Revision',
       value: data.revision,
@@ -217,9 +201,7 @@ export function renderArgoCdTemplate(data: ArgoCdTemplateData): AdaptiveCard {
     });
   }
 
-  const body: Array<Record<string, unknown>> = [
-    createCardFrame(eventStyles[data.event], contentItems),
-  ];
+  const body: Array<Record<string, unknown>> = [createCardFrame(contentItems)];
 
   return createBaseCard(body);
 }
