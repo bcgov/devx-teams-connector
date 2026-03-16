@@ -17,7 +17,8 @@ RUN npm ci --omit=dev && \
 
 EXPOSE 3000
 
-USER 1001
+RUN adduser -D -u 1001 appuser
+USER appuser
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=5 CMD wget -qO- http://localhost:3000/api/v1/live || exit 1
 

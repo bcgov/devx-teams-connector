@@ -3,6 +3,8 @@ import express, { type Express, Router } from 'express';
 import pinoHttp from 'pino-http';
 import type { Logger } from 'pino';
 
+import rateLimit from 'express-rate-limit';
+
 import type { Config } from './config';
 import { ConnectorError } from './errors';
 import { errorHandler } from './middleware/errorHandler';
@@ -45,6 +47,12 @@ export function createApp(options: AppOptions): Express {
   }));
 
   apiRouter.use(apiKeyAuth(options.config.apiKey));
+  apiRouter.use(rateLimit({
+    windowMs: 60_000,
+    limit: 100,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+  }));
   apiRouter.use(createMessagesRouter(messageService));
 
   app.use('/api/v1', apiRouter);

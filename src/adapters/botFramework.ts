@@ -170,11 +170,6 @@ export class BotFrameworkAdapter implements DeliveryAdapter {
   }
 
   async healthCheck(): Promise<boolean> {
-    try {
-      await this.getToken();
-      return true;
-    } catch {
-      return false;
-    }
+    return this.token !== null && Date.now() < this.tokenExpiresAt;
   }
 }

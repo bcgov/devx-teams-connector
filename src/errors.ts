@@ -46,9 +46,15 @@ export function toConnectorError(error: unknown): ConnectorError {
     return error;
   }
 
+  let detail = 'Unexpected internal error during message processing.';
+  if (error instanceof Error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    detail = code ? `${code}: ${error.message}` : error.message;
+  }
+
   return new ConnectorError(
     'DELIVERY_FAILED',
-    'Unexpected internal error during message processing.',
+    detail,
     500,
     true,
   );

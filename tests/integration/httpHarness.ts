@@ -1,6 +1,5 @@
-import { EventEmitter } from 'node:events';
 import type { Express } from 'express';
-import { createRequest, createResponse } from 'node-mocks-http';
+import request from 'supertest';
 
 interface InvokeOptions {
   method: 'GET' | 'POST';
@@ -15,49 +14,26 @@ interface InvokeResult {
   body: unknown;
 }
 
-export function invokeApp(app: Express, options: InvokeOptions): Promise<InvokeResult> {
-  return new Promise((resolve, reject) => {
-    const req = createRequest({
-      method: options.method,
-      url: options.path,
-      headers: options.headers ?? {},
-      body: options.body,
-    });
+export async function invokeApp(app: Express, options: InvokeOptions): Promise<InvokeResult> {
+  const req = options.method === 'GET'
+    ? request(app).get(options.path)
+    : request(app).post(options.path);
 
-    const res = createResponse({
-      eventEmitter: EventEmitter,
-    });
+  if (options.headers) {
+    for (const [key, value] of Object.entries(options.headers)) {
+      req.set(key, value);
+    }
+  }
 
-    const finalize = () => {
-      const data = res._getData();
-      let body: unknown = data;
+  if (options.body !== undefined) {
+    req.send(options.body as object);
+  }
 
-      if (typeof data === 'string') {
-        try {
-          body = JSON.parse(data);
-        } catch {
-          body = data;
-        }
-      }
+  const response = await req;
 
-      resolve({
-        status: res.statusCode,
-        headers: res._getHeaders(),
-        body,
-      });
-    };
-
-    res.on('end', finalize);
-
-    app.handle(req, res, (error: unknown) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      if (!res.writableEnded) {
-        finalize();
-      }
-    });
-  });
+  return {
+    status: response.status,
+    headers: response.headers,
+    body: response.body,
+  };
 }
