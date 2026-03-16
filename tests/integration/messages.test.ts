@@ -14,7 +14,6 @@ const target = {
 
 const authHeaders = {
   authorization: 'Bearer test-api-key',
-  'x-user-entra-id': '11111111-1111-1111-1111-111111111111',
 };
 
 describe('messages endpoint', () => {
@@ -146,9 +145,7 @@ describe('messages endpoint', () => {
     const response = await invokeApp(app, {
       method: 'POST',
       path: '/api/v1/messages',
-      headers: {
-        'x-user-entra-id': authHeaders['x-user-entra-id'],
-      },
+      headers: {},
       body: {},
     });
 
@@ -166,25 +163,6 @@ describe('messages endpoint', () => {
       path: '/api/v1/messages',
       headers: {
         authorization: 'Bearer wrong-key',
-        'x-user-entra-id': authHeaders['x-user-entra-id'],
-      },
-      body: {},
-    });
-
-    const body = response.body as Record<string, unknown>;
-
-    expect(response.status).toBe(401);
-    expect(body.code).toBe('AUTH_FAILED');
-  });
-
-  it('rejects missing user id header', async () => {
-    const app = createTestApp();
-
-    const response = await invokeApp(app, {
-      method: 'POST',
-      path: '/api/v1/messages',
-      headers: {
-        authorization: authHeaders.authorization,
       },
       body: {},
     });
@@ -201,9 +179,7 @@ describe('messages endpoint', () => {
     const response = await invokeApp(app, {
       method: 'POST',
       path: '/api/v1/messages/preview',
-      headers: {
-        'x-user-entra-id': authHeaders['x-user-entra-id'],
-      },
+      headers: {},
       body: {},
     });
 
@@ -221,25 +197,6 @@ describe('messages endpoint', () => {
       path: '/api/v1/messages/preview',
       headers: {
         authorization: 'Bearer wrong-key',
-        'x-user-entra-id': authHeaders['x-user-entra-id'],
-      },
-      body: {},
-    });
-
-    const body = response.body as Record<string, unknown>;
-
-    expect(response.status).toBe(401);
-    expect(body.code).toBe('AUTH_FAILED');
-  });
-
-  it('rejects missing user id header for preview', async () => {
-    const app = createTestApp();
-
-    const response = await invokeApp(app, {
-      method: 'POST',
-      path: '/api/v1/messages/preview',
-      headers: {
-        authorization: authHeaders.authorization,
       },
       body: {},
     });

@@ -5,7 +5,6 @@ import type { Logger } from 'pino';
 import type { Config } from './config';
 import { errorHandler } from './middleware/errorHandler';
 import { apiKeyAuth } from './middleware/apiKeyAuth';
-import { requireUserEntraId } from './middleware/userHeader';
 import type { DeliveryAdapter } from './adapters/types';
 import { MessageService } from './services/messageService';
 import { createMessagesRouter } from './routes/messages';
@@ -43,7 +42,6 @@ export function createApp(options: AppOptions): Express {
   }));
 
   apiRouter.use(apiKeyAuth(options.config.apiKey));
-  apiRouter.use(requireUserEntraId());
   apiRouter.use(createMessagesRouter(messageService));
 
   app.use('/api/v1', apiRouter);

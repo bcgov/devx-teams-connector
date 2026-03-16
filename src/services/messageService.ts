@@ -12,7 +12,7 @@ export class MessageService {
     private readonly logger: Logger,
   ) {}
 
-  async send(request: SendMessageRequest, userEntraId: string): Promise<MessageAccepted> {
+  async send(request: SendMessageRequest): Promise<MessageAccepted> {
     const payload = this.buildDeliveryPayload(request);
     const deliveryResult = await this.adapter.send(payload);
 
@@ -34,7 +34,6 @@ export class MessageService {
 
     this.logger.info(
       {
-        userEntraId,
         teamId: request.target.teamId,
         channelId: request.target.channelId,
         contentKind: request.content.kind,
@@ -48,12 +47,11 @@ export class MessageService {
     return accepted;
   }
 
-  preview(request: SendMessageRequest, userEntraId: string): DeliveryPayload {
+  preview(request: SendMessageRequest): DeliveryPayload {
     const payload = this.buildDeliveryPayload(request);
 
     this.logger.info(
       {
-        userEntraId,
         teamId: payload.teamId,
         channelId: payload.channelId,
         contentKind: request.content.kind,
