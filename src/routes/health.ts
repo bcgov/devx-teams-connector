@@ -12,7 +12,12 @@ export function createHealthRouter(options: HealthRouteOptions): Router {
   const router = Router();
 
   router.get('/health', async (_req, res) => {
-    const adapterHealthy = await options.adapter.healthCheck();
+    let adapterHealthy: boolean;
+    try {
+      adapterHealthy = await options.adapter.healthCheck();
+    } catch {
+      adapterHealthy = false;
+    }
 
     res.json({
       status: adapterHealthy ? 'healthy' : 'degraded',

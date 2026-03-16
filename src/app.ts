@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import express, { type Express, Router } from 'express';
 import pinoHttp from 'pino-http';
 import type { Logger } from 'pino';
@@ -30,6 +31,7 @@ export function createApp(options: AppOptions): Express {
       pinoHttp({
         logger: options.logger,
         autoLogging: true,
+        genReqId: (req) => req.headers['x-request-id'] ?? randomUUID(),
       }),
     );
   }
