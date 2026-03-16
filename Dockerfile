@@ -19,6 +19,6 @@ EXPOSE 3000
 
 USER 1001
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=5 CMD wget -qO- http://localhost:3000/api/v1/health || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=5 CMD wget -qO- http://localhost:3000/api/v1/live || exit 1
 
 CMD ["node", "dist/index.js"]

@@ -14,7 +14,12 @@ export class MessageService {
 
   async send(request: SendMessageRequest): Promise<MessageAccepted> {
     const payload = this.buildDeliveryPayload(request);
-    const deliveryResult = await this.adapter.send(payload);
+    let deliveryResult = await this.adapter.send(payload);
+
+    if (!deliveryResult.success && deliveryResult.retryable) {
+      await new Promise((resolve) => setTimeout(resolve, 1_000));
+      deliveryResult = await this.adapter.send(payload);
+    }
 
     if (!deliveryResult.success) {
       throw new ConnectorError(

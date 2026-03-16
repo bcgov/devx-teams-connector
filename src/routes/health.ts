@@ -28,5 +28,21 @@ export function createHealthRouter(options: HealthRouteOptions): Router {
     });
   });
 
+  router.get('/live', (_req, res) => {
+    res.json({ status: 'ok' });
+  });
+
+  router.get('/ready', async (_req, res) => {
+    let adapterHealthy: boolean;
+    try {
+      adapterHealthy = await options.adapter.healthCheck();
+    } catch {
+      adapterHealthy = false;
+    }
+
+    const status = adapterHealthy ? 'ok' : 'unavailable';
+    res.status(adapterHealthy ? 200 : 503).json({ status });
+  });
+
   return router;
 }
