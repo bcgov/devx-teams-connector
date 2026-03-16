@@ -19,6 +19,21 @@ const app = createApp({
   adapter,
 });
 
-app.listen(config.port, () => {
+const server = app.listen(config.port, () => {
   logger.info({ port: config.port }, 'Teams connector PoC listening');
 });
+
+function shutdown(signal: string) {
+  logger.info({ signal }, 'Received signal, shutting down');
+  server.close((err) => {
+    if (err) {
+      logger.error({ err }, 'Error during shutdown');
+      process.exit(1);
+    }
+    logger.info('Shutdown complete');
+    process.exit(0);
+  });
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
