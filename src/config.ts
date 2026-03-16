@@ -2,8 +2,6 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import dotenv from 'dotenv';
 
-dotenv.config();
-
 export interface Config {
   port: number;
   apiKey: string;
@@ -52,6 +50,7 @@ function readPackageVersion(): string {
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
+  dotenv.config();
   const portRaw = env.PORT ?? '3000';
   const port = Number(portRaw);
 
