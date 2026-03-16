@@ -46,10 +46,9 @@ export class BotFrameworkAdapter implements DeliveryAdapter {
     });
 
     if (!tokenResponse.ok) {
-      const text = await tokenResponse.text().catch(() => '');
       throw new ConnectorError(
         'BACKEND_UNAVAILABLE',
-        `Failed to acquire Bot Framework token: HTTP ${tokenResponse.status}${text ? ` ${text}` : ''}`,
+        `Failed to acquire Bot Framework token: HTTP ${tokenResponse.status}`,
         502,
         true,
       );

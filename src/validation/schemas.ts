@@ -61,7 +61,9 @@ const TemplateContentSchema = z.discriminatedUnion('template', [
 
 const ContentSchema = z.union([TextContentSchema, TemplateContentSchema]);
 
-const MetadataSchema = z.record(z.string()).optional();
+const MetadataSchema = z.record(z.string().max(256))
+  .refine((obj) => Object.keys(obj).length <= 20, { message: 'metadata: too many keys (max 20)' })
+  .optional();
 
 export const SendMessageRequestSchema: z.ZodType<SendMessageRequest> = z.object({
   target: TargetSchema,
