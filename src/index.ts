@@ -23,9 +23,22 @@ const server = app.listen(config.port, () => {
   logger.info({ port: config.port }, 'Teams connector PoC listening');
 });
 
+server.requestTimeout = 30_000;
+server.headersTimeout = 31_000;
+
+const SHUTDOWN_TIMEOUT_MS = 10_000;
+
 function shutdown(signal: string) {
   logger.info({ signal }, 'Received signal, shutting down');
+
+  const forceTimer = setTimeout(() => {
+    logger.error('Shutdown timed out, forcing exit');
+    process.exit(1);
+  }, SHUTDOWN_TIMEOUT_MS);
+  forceTimer.unref();
+
   server.close((err) => {
+    clearTimeout(forceTimer);
     if (err) {
       logger.error({ err }, 'Error during shutdown');
       process.exit(1);

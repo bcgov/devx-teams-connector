@@ -46,7 +46,7 @@ describe('messages endpoint', () => {
     });
   }
 
-  it('returns 202 for valid text requests', async () => {
+  it('returns 200 for valid text requests', async () => {
     const app = createTestApp();
 
     const response = await invokeApp(app, {
@@ -64,8 +64,8 @@ describe('messages endpoint', () => {
 
     const body = response.body as Record<string, unknown>;
 
-    expect(response.status).toBe(202);
-    expect(body.status).toBe('accepted');
+    expect(response.status).toBe(200);
+    expect(body.status).toBe('delivered');
     expect(typeof body.id).toBe('string');
     expect(typeof body.timestamp).toBe('string');
   });
@@ -394,7 +394,7 @@ describe('messages endpoint', () => {
         },
       });
 
-      expect(response.status).toBe(202);
+      expect(response.status).toBe(200);
     }
 
     expect(sendMock).toHaveBeenCalledTimes(templatePayloads.length);

@@ -19,7 +19,7 @@ export const errorHandler: ErrorRequestHandler = (error, req, res, _next) => {
   };
 
   if (!(error instanceof ConnectorError)) {
-    logPayload.originalError = error instanceof Error ? error.message : String(error);
+    logPayload.originalError = error instanceof Error ? error.stack ?? error.message : String(error);
   }
 
   req.log?.error(logPayload, 'Request failed');

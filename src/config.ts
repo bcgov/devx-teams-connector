@@ -50,7 +50,7 @@ function readPackageVersion(): string {
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
-  dotenv.config();
+  if (env === process.env) dotenv.config();
   const portRaw = env.PORT ?? '3000';
   const port = Number(portRaw);
 

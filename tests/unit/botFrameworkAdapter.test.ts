@@ -125,7 +125,7 @@ describe('BotFrameworkAdapter', () => {
     expect(result.success).toBe(false);
     expect(result.errorCode).toBe('DELIVERY_FAILED');
     expect(result.retryable).toBe(false);
-    expect(result.httpStatus).toBe(500);
+    expect(result.httpStatus).toBe(400);
   });
 
   it('uses configured token tenant for oauth endpoint', async () => {

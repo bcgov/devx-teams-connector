@@ -130,7 +130,7 @@ export interface SendMessageRequest {
 
 export interface MessageAccepted {
   id: string;
-  status: 'accepted';
+  status: 'delivered';
   timestamp: string;
 }
 

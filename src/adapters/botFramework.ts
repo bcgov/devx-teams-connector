@@ -66,14 +66,30 @@ export class BotFrameworkAdapter implements DeliveryAdapter {
   }
 
   async send(payload: DeliveryPayload): Promise<DeliveryResult> {
-    return this.sendOnce(payload).then((result) => {
+    try {
+      let result = await this.sendOnce(payload);
       if (!result.success && result.httpStatus === 401) {
         this.token = null;
         this.tokenExpiresAt = 0;
-        return this.sendOnce(payload);
+        result = await this.sendOnce(payload);
+      }
+      // Remap upstream 401 to 502 so it doesn't collide with client auth semantics
+      if (!result.success && result.httpStatus === 401) {
+        return { ...result, httpStatus: 502 };
       }
       return result;
-    });
+    } catch (error) {
+      if (error instanceof ConnectorError) throw error;
+      const message =
+        error instanceof Error ? error.message : 'Unknown transport error';
+      return {
+        success: false,
+        error: `Upstream transport failure: ${message}`,
+        retryable: true,
+        errorCode: 'BACKEND_UNAVAILABLE',
+        httpStatus: 502,
+      };
+    }
   }
 
   private async sendOnce(payload: DeliveryPayload): Promise<DeliveryResult> {
@@ -160,16 +176,38 @@ export class BotFrameworkAdapter implements DeliveryAdapter {
       };
     }
 
+    if (response.status === 403) {
+      return {
+        success: false,
+        error,
+        retryable: false,
+        errorCode: 'UNAUTHORIZED_CHANNEL',
+        httpStatus: 403,
+      };
+    }
+
+    if (response.status === 404) {
+      return {
+        success: false,
+        error,
+        retryable: false,
+        errorCode: 'CHANNEL_NOT_FOUND',
+        httpStatus: 404,
+      };
+    }
+
     return {
       success: false,
       error,
       retryable: false,
       errorCode: 'DELIVERY_FAILED',
-      httpStatus: 500,
+      httpStatus: response.status >= 400 && response.status < 500 ? response.status : 500,
     };
   }
 
   async healthCheck(): Promise<boolean> {
-    return this.token !== null && Date.now() < this.tokenExpiresAt;
+    // No token yet means no requests have been made — that's fine, we're ready to accept work
+    if (this.token === null) return true;
+    return Date.now() < this.tokenExpiresAt;
   }
 }

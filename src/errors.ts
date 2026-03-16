@@ -46,15 +46,25 @@ export function toConnectorError(error: unknown): ConnectorError {
     return error;
   }
 
-  let detail = 'Unexpected internal error during message processing.';
-  if (error instanceof Error) {
-    const code = (error as NodeJS.ErrnoException).code;
-    detail = code ? `${code}: ${error.message}` : error.message;
+  // express.json() sets type = 'entity.parse.failed' and status = 400 on malformed JSON
+  if (
+    error instanceof SyntaxError &&
+    'status' in error &&
+    (error as { status: unknown }).status === 400 &&
+    'type' in error &&
+    (error as { type: unknown }).type === 'entity.parse.failed'
+  ) {
+    return new ConnectorError(
+      'VALIDATION_ERROR',
+      'Malformed JSON in request body.',
+      400,
+      false,
+    );
   }
 
   return new ConnectorError(
     'DELIVERY_FAILED',
-    detail,
+    'Unexpected internal error during message processing.',
     500,
     true,
   );

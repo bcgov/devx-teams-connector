@@ -14,12 +14,7 @@ export class MessageService {
 
   async send(request: SendMessageRequest): Promise<MessageAccepted> {
     const payload = this.buildDeliveryPayload(request);
-    let deliveryResult = await this.adapter.send(payload);
-
-    if (!deliveryResult.success && deliveryResult.retryable) {
-      await new Promise((resolve) => setTimeout(resolve, 1_000));
-      deliveryResult = await this.adapter.send(payload);
-    }
+    const deliveryResult = await this.adapter.send(payload);
 
     if (!deliveryResult.success) {
       throw new ConnectorError(
@@ -33,7 +28,7 @@ export class MessageService {
 
     const accepted: MessageAccepted = {
       id: randomUUID(),
-      status: 'accepted',
+      status: 'delivered',
       timestamp: new Date().toISOString(),
     };
 
@@ -43,10 +38,10 @@ export class MessageService {
         channelId: request.target.channelId,
         contentKind: request.content.kind,
         template: request.content.kind === 'template' ? request.content.template : undefined,
-        metadata: request.metadata,
+        metadataKeys: request.metadata ? Object.keys(request.metadata) : undefined,
         status: accepted.status,
       },
-      'Message accepted for delivery',
+      'Message delivered',
     );
 
     return accepted;
@@ -61,7 +56,7 @@ export class MessageService {
         channelId: payload.channelId,
         contentKind: request.content.kind,
         template: request.content.kind === 'template' ? request.content.template : undefined,
-        metadata: request.metadata,
+        metadataKeys: request.metadata ? Object.keys(request.metadata) : undefined,
         mode: 'preview',
       },
       'Preview payload generated',
