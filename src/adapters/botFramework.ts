@@ -42,6 +42,7 @@ export class BotFrameworkAdapter implements DeliveryAdapter {
         client_secret: this.config.botSecret,
         scope: 'https://api.botframework.com/.default',
       }),
+      signal: AbortSignal.timeout(10_000),
     });
 
     if (!tokenResponse.ok) {
@@ -84,6 +85,7 @@ export class BotFrameworkAdapter implements DeliveryAdapter {
         },
         activity: payload.activity,
       }),
+      signal: AbortSignal.timeout(10_000),
     });
 
     if (response.ok) {

@@ -101,7 +101,7 @@ describe('messages endpoint', () => {
     expect(payload.activity).toEqual({
       type: 'message',
       text: 'hello from preview',
-      textFormat: 'xml',
+      textFormat: 'plain',
     });
   });
 

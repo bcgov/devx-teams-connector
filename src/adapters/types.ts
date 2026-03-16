@@ -3,7 +3,7 @@ import type { ErrorCode } from '../errors';
 export interface BotFrameworkActivity {
   type: 'message';
   text?: string;
-  textFormat?: 'xml';
+  textFormat?: 'plain' | 'xml';
   attachments?: Array<{
     contentType: 'application/vnd.microsoft.card.adaptive';
     content: object;

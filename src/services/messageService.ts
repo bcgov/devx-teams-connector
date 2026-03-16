@@ -80,7 +80,7 @@ export class MessageService {
       return {
         type: 'message',
         text: request.content.text,
-        textFormat: 'xml',
+        textFormat: 'plain',
       };
     }
 
