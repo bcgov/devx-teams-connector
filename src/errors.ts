@@ -8,7 +8,8 @@ export type ErrorCode =
   | 'TEMPLATE_DATA_ERROR'
   | 'RATE_LIMITED'
   | 'BACKEND_UNAVAILABLE'
-  | 'DELIVERY_FAILED';
+  | 'DELIVERY_FAILED'
+  | 'NOT_FOUND';
 
 export class ConnectorError extends Error {
   public readonly code: ErrorCode;

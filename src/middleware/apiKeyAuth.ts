@@ -1,17 +1,12 @@
-import { timingSafeEqual } from 'node:crypto';
+import { createHash, timingSafeEqual } from 'node:crypto';
 import type { RequestHandler } from 'express';
 
 import { ConnectorError } from '../errors';
 
 function constantTimeCompare(left: string, right: string): boolean {
-  const leftBuf = Buffer.from(left);
-  const rightBuf = Buffer.from(right);
-
-  if (leftBuf.length !== rightBuf.length) {
-    return false;
-  }
-
-  return timingSafeEqual(leftBuf, rightBuf);
+  const leftHash = createHash('sha256').update(left).digest();
+  const rightHash = createHash('sha256').update(right).digest();
+  return timingSafeEqual(leftHash, rightHash);
 }
 
 export function apiKeyAuth(expectedApiKey: string): RequestHandler {

@@ -3,6 +3,7 @@ import pinoHttp from 'pino-http';
 import type { Logger } from 'pino';
 
 import type { Config } from './config';
+import { ConnectorError } from './errors';
 import { errorHandler } from './middleware/errorHandler';
 import { apiKeyAuth } from './middleware/apiKeyAuth';
 import type { DeliveryAdapter } from './adapters/types';
@@ -45,6 +46,11 @@ export function createApp(options: AppOptions): Express {
   apiRouter.use(createMessagesRouter(messageService));
 
   app.use('/api/v1', apiRouter);
+
+  app.use((_req, _res, next) => {
+    next(new ConnectorError('NOT_FOUND', 'Route not found.', 404, false));
+  });
+
   app.use(errorHandler);
 
   return app;
