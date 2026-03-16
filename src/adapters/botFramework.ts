@@ -67,6 +67,17 @@ export class BotFrameworkAdapter implements DeliveryAdapter {
   }
 
   async send(payload: DeliveryPayload): Promise<DeliveryResult> {
+    return this.sendOnce(payload).then((result) => {
+      if (!result.success && result.httpStatus === 401) {
+        this.token = null;
+        this.tokenExpiresAt = 0;
+        return this.sendOnce(payload);
+      }
+      return result;
+    });
+  }
+
+  private async sendOnce(payload: DeliveryPayload): Promise<DeliveryResult> {
     const token = await this.getToken();
     const serviceUrl = this.config.serviceUrl.replace(/\/$/, '');
     const endpoint = `${serviceUrl}/v3/conversations`;
@@ -116,6 +127,16 @@ export class BotFrameworkAdapter implements DeliveryAdapter {
       } catch {
         error = `${fallbackError} ${responseText}`;
       }
+    }
+
+    if (response.status === 401) {
+      return {
+        success: false,
+        error,
+        retryable: true,
+        errorCode: 'BACKEND_UNAVAILABLE',
+        httpStatus: 401,
+      };
     }
 
     if (response.status === 429) {
