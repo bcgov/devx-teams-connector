@@ -9,6 +9,30 @@ function getContentItems(card: { body: Array<Record<string, unknown>> }): Array<
 }
 
 describe('renderSysdigTemplate', () => {
+  it('maps each severity to the correct alert color', () => {
+    const expectedColors: Record<string, string> = {
+      critical: 'Attention',
+      high: 'Warning',
+      medium: 'Warning',
+      low: 'Accent',
+      info: 'Default',
+    };
+
+    for (const [severity, expectedColor] of Object.entries(expectedColors)) {
+      const card = renderSysdigTemplate({
+        severity: severity as 'critical' | 'high' | 'medium' | 'low' | 'info',
+        alertName: 'Test alert',
+      });
+
+      const items = getContentItems(card);
+      const columnSet = items.find((item) => item.type === 'ColumnSet') as Record<string, unknown>;
+      const columns = columnSet?.columns as Array<Record<string, unknown>>;
+      const firstColItems = columns[0]?.items as Array<Record<string, unknown>>;
+
+      expect(firstColItems[0]?.color).toBe(expectedColor);
+    }
+  });
+
   it('renders action button for each severity level', () => {
     for (const severity of ['critical', 'high', 'medium', 'low', 'info'] as const) {
       const card = renderSysdigTemplate({

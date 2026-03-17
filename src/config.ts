@@ -58,9 +58,16 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     throw new Error(`Invalid PORT value: ${portRaw}`);
   }
 
+  const apiKey = getRequiredEnv(env, 'CONNECTOR_API_KEY');
+  if (apiKey.length < 32) {
+    throw new Error(
+      `CONNECTOR_API_KEY must be at least 32 characters (got ${apiKey.length}). Use a strong, randomly generated secret.`,
+    );
+  }
+
   return {
     port,
-    apiKey: getRequiredEnv(env, 'CONNECTOR_API_KEY'),
+    apiKey,
     botId: getRequiredEnv(env, 'BOT_ID'),
     botSecret: getRequiredEnv(env, 'BOT_SECRET'),
     botServiceUrl: normalizeEnvValue(env.BOT_SERVICE_URL ?? 'https://smba.trafficmanager.net/teams'),

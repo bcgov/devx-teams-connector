@@ -51,6 +51,8 @@ jobs:
           context: .
           load: true
           tags: ${{ steps.vars.outputs.image }}:ci-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Start container
         run: |
@@ -63,7 +65,7 @@ jobs:
             --health-retries=18 \
             --health-start-period=5s \
             -e PORT=3000 \
-            -e CONNECTOR_API_KEY=ci-api-key \
+            -e CONNECTOR_API_KEY=ci-api-key-that-is-at-least-32-characters-long \
             -e BOT_ID=ci-bot-id \
             -e BOT_SECRET=ci-bot-secret \
             -e BOT_TOKEN_TENANT=botframework.com \
@@ -167,3 +169,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

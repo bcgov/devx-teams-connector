@@ -206,8 +206,7 @@ export class BotFrameworkAdapter implements DeliveryAdapter {
   }
 
   async healthCheck(): Promise<boolean> {
-    // No token yet means no requests have been made — that's fine, we're ready to accept work
-    if (this.token === null) return true;
-    return Date.now() < this.tokenExpiresAt;
+    // Always ready — token acquisition is lazy and happens on first send()
+    return true;
   }
 }

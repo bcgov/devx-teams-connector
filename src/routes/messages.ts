@@ -11,7 +11,7 @@ export function createMessagesRouter(messageService: MessageService): Router {
       const validatedRequest = validateSendMessageRequest(req.body);
       const accepted = await messageService.send(validatedRequest);
 
-      res.status(200).json(accepted);
+      res.status(201).json(accepted);
     } catch (error) {
       next(error);
     }

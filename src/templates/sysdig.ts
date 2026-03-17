@@ -19,6 +19,14 @@ export const SysdigTemplateDataSchema = z.object({
   url: z.string().url().optional(),
 }).strict();
 
+const severityColors: Record<SysdigTemplateData['severity'], string> = {
+  critical: 'Attention',
+  high: 'Warning',
+  medium: 'Warning',
+  low: 'Accent',
+  info: 'Default',
+};
+
 const severityFactLabels: Record<SysdigTemplateData['severity'], string> = {
   critical: '🔴 Critical',
   high: '🟠 High',
@@ -41,14 +49,7 @@ export function renderSysdigTemplate(data: SysdigTemplateData): AdaptiveCard {
               type: 'TextBlock',
               text: `${data.severity.toUpperCase()} ALERT`,
               size: 'Small',
-              color:
-                data.severity === 'critical'
-                  ? 'Attention'
-                  : data.severity === 'low'
-                    ? 'Accent'
-                    : data.severity === 'info'
-                      ? 'Default'
-                      : 'Warning',
+              color: severityColors[data.severity],
               weight: 'Bolder',
               spacing: 'None',
             },

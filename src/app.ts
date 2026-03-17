@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import express, { type Express, Router } from 'express';
+import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 import type { Logger } from 'pino';
 
@@ -26,7 +27,7 @@ export function createApp(options: AppOptions): Express {
   const apiRouter = Router();
   const startedAt = Date.now();
 
-  app.disable('x-powered-by');
+  app.use(helmet());
   app.use(express.json({ limit: '256kb' }));
   if (options.enableHttpLogging ?? true) {
     app.use(
@@ -46,12 +47,19 @@ export function createApp(options: AppOptions): Express {
     startedAt,
   }));
 
+  apiRouter.use(rateLimit({
+    windowMs: 60_000,
+    limit: 30,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+  }));
   apiRouter.use(apiKeyAuth(options.config.apiKey));
   apiRouter.use(rateLimit({
     windowMs: 60_000,
     limit: 100,
     standardHeaders: 'draft-7',
     legacyHeaders: false,
+    keyGenerator: () => 'global',
   }));
   apiRouter.use(createMessagesRouter(messageService));
 

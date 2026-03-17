@@ -27,7 +27,7 @@ export class MessageService {
     }
 
     const accepted: MessageAccepted = {
-      id: randomUUID(),
+      id: deliveryResult.teamsMessageId ?? randomUUID(),
       status: 'delivered',
       timestamp: new Date().toISOString(),
     };
