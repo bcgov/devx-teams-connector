@@ -54,8 +54,7 @@ async function main() {
   process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
-main().catch((err) => {
-  const errorType = err instanceof Error ? err.name : 'UnknownError';
-  console.error(`Fatal startup error (${errorType})`);
+main().catch(() => {
+  console.error('Fatal startup error');
   process.exit(1);
 });
