@@ -1,5 +1,5 @@
 FROM node:20-alpine AS builder
-RUN apk update && apk --no-cache
+RUN apk update && apk upgrade --no-cache
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
