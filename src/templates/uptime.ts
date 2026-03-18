@@ -12,7 +12,7 @@ import {
 
 export const UptimeTemplateDataSchema = z.object({
   status: z.enum(['up', 'degraded', 'down']),
-  service: z.string().min(1),
+  service: z.string().min(1).max(200),
   responseTimeMs: z.number().nonnegative().optional(),
   downSince: IsoTimestampSchema.optional(),
   url: z.string().url().optional(),

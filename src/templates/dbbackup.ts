@@ -5,7 +5,7 @@ import { createBaseCard, createCardFrame, createFactSet, createSectionSeparator,
 
 export const DbBackupTemplateDataSchema = z.object({
   status: z.enum(['success', 'warning', 'failed']),
-  database: z.string().min(1),
+  database: z.string().min(1).max(200),
   duration: z.string().min(1).optional(),
   size: z.string().min(1).optional(),
   message: z.string().min(1).optional(),

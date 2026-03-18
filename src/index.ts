@@ -23,8 +23,9 @@ const server = app.listen(config.port, () => {
   logger.info({ port: config.port }, 'Teams connector PoC listening');
 });
 
+server.keepAliveTimeout = 65_000;
+server.headersTimeout = 66_000;
 server.requestTimeout = 30_000;
-server.headersTimeout = 31_000;
 
 const SHUTDOWN_TIMEOUT_MS = 10_000;
 

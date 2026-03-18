@@ -28,5 +28,4 @@ export interface DeliveryResult {
 
 export interface DeliveryAdapter {
   send(payload: DeliveryPayload): Promise<DeliveryResult>;
-  healthCheck(): Promise<boolean>;
 }

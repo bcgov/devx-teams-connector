@@ -42,21 +42,20 @@ export function createApp(options: AppOptions): Express {
   const messageService = new MessageService(options.adapter, options.logger);
 
   apiRouter.use(createHealthRouter({
-    adapter: options.adapter,
     version: options.config.version,
     startedAt,
   }));
 
   apiRouter.use(rateLimit({
     windowMs: 60_000,
-    limit: 30,
+    limit: 120,
     standardHeaders: 'draft-7',
     legacyHeaders: false,
   }));
   apiRouter.use(apiKeyAuth(options.config.apiKey));
   apiRouter.use(rateLimit({
     windowMs: 60_000,
-    limit: 100,
+    limit: 300,
     standardHeaders: 'draft-7',
     legacyHeaders: false,
     keyGenerator: () => 'global',

@@ -1,9 +1,6 @@
 import { Router } from 'express';
 
-import type { DeliveryAdapter } from '../adapters/types';
-
 interface HealthRouteOptions {
-  adapter: DeliveryAdapter;
   version: string;
   startedAt: number;
 }
@@ -11,19 +8,10 @@ interface HealthRouteOptions {
 export function createHealthRouter(options: HealthRouteOptions): Router {
   const router = Router();
 
-  router.get('/health', async (_req, res) => {
-    let adapterHealthy: boolean;
-    try {
-      adapterHealthy = await options.adapter.healthCheck();
-    } catch {
-      adapterHealthy = false;
-    }
-
+  router.get('/health', (_req, res) => {
     res.json({
-      status: adapterHealthy ? 'healthy' : 'degraded',
+      status: 'healthy',
       version: options.version,
-      adapter: 'botFramework',
-      adapterHealthy,
       uptime: Math.floor((Date.now() - options.startedAt) / 1000),
     });
   });
@@ -32,16 +20,8 @@ export function createHealthRouter(options: HealthRouteOptions): Router {
     res.json({ status: 'ok' });
   });
 
-  router.get('/ready', async (_req, res) => {
-    let adapterHealthy: boolean;
-    try {
-      adapterHealthy = await options.adapter.healthCheck();
-    } catch {
-      adapterHealthy = false;
-    }
-
-    const status = adapterHealthy ? 'ok' : 'unavailable';
-    res.status(adapterHealthy ? 200 : 503).json({ status });
+  router.get('/ready', (_req, res) => {
+    res.json({ status: 'ok' });
   });
 
   return router;

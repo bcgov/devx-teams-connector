@@ -12,7 +12,7 @@ import {
 
 export const SysdigTemplateDataSchema = z.object({
   severity: z.enum(['critical', 'high', 'medium', 'low', 'info']),
-  alertName: z.string().min(1),
+  alertName: z.string().min(1).max(200),
   scope: z.string().min(1).optional(),
   description: z.string().min(1).optional(),
   timestamp: IsoTimestampSchema.optional(),

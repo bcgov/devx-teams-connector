@@ -61,7 +61,7 @@ const TemplateContentSchema = z.discriminatedUnion('template', [
 
 const ContentSchema = z.union([TextContentSchema, TemplateContentSchema]);
 
-const MetadataSchema = z.record(z.string().max(256))
+const MetadataSchema = z.record(z.string().min(1).max(64), z.string().max(256))
   .refine((obj) => Object.keys(obj).length <= 20, { message: 'metadata: too many keys (max 20)' })
   .optional();
 

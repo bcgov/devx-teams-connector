@@ -6,7 +6,7 @@ import { createBaseCard, createCardFrame, toTextColor } from './shared';
 const GenericSeveritySchema = z.enum(['critical', 'warning', 'info', 'success']);
 
 export const GenericTemplateDataSchema = z.object({
-  title: z.string().min(1),
+  title: z.string().min(1).max(200),
   body: z.string().max(2000).optional(),
   severity: GenericSeveritySchema.optional(),
   url: z.string().url().optional(),

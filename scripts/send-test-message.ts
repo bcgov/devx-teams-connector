@@ -135,7 +135,6 @@ Options:
 
 Environment Variables:
   CONNECTOR_API_KEY                       API key for authentication
-  USER_ENTRA_ID                           User Entra ID (Azure AD user ID)
   TEAM_ID                                 Target team ID (UUID)
   CHANNEL_ID                              Target channel ID (19:xxx@thread.tacv2)
   CONNECTOR_URL                           Connector URL (default: http://localhost:3000)
@@ -431,7 +430,6 @@ function buildTemplateContent(args: Args): { kind: 'template'; template: Templat
 
 async function sendMessage(args: Args): Promise<void> {
   const apiKey = getRequired('CONNECTOR_API_KEY');
-  const userEntraId = getRequired('USER_ENTRA_ID');
   const teamId = getRequired('TEAM_ID');
   const channelId = getRequired('CHANNEL_ID');
   const connectorUrl = process.env.CONNECTOR_URL?.trim() || 'http://localhost:3000';
@@ -466,7 +464,6 @@ async function sendMessage(args: Args): Promise<void> {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,
-      'X-User-Entra-Id': userEntraId,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(requestBody),

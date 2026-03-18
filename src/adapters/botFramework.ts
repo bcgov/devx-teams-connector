@@ -16,6 +16,7 @@ interface TokenResponse {
 export class BotFrameworkAdapter implements DeliveryAdapter {
   private token: string | null = null;
   private tokenExpiresAt = 0;
+  private tokenPromise: Promise<string> | null = null;
 
   constructor(
     private readonly config: BotFrameworkConfig,
@@ -31,6 +32,19 @@ export class BotFrameworkAdapter implements DeliveryAdapter {
       return this.token;
     }
 
+    if (this.tokenPromise) {
+      return this.tokenPromise;
+    }
+
+    this.tokenPromise = this.fetchToken();
+    try {
+      return await this.tokenPromise;
+    } finally {
+      this.tokenPromise = null;
+    }
+  }
+
+  private async fetchToken(): Promise<string> {
     const tokenResponse = await this.fetchImpl(this.tokenEndpoint(), {
       method: 'POST',
       headers: {
@@ -66,12 +80,13 @@ export class BotFrameworkAdapter implements DeliveryAdapter {
   }
 
   async send(payload: DeliveryPayload): Promise<DeliveryResult> {
+    const overallSignal = AbortSignal.timeout(25_000);
     try {
-      let result = await this.sendOnce(payload);
+      let result = await this.sendOnce(payload, overallSignal);
       if (!result.success && result.httpStatus === 401) {
         this.token = null;
         this.tokenExpiresAt = 0;
-        result = await this.sendOnce(payload);
+        result = await this.sendOnce(payload, overallSignal);
       }
       // Remap upstream 401 to 502 so it doesn't collide with client auth semantics
       if (!result.success && result.httpStatus === 401) {
@@ -80,6 +95,15 @@ export class BotFrameworkAdapter implements DeliveryAdapter {
       return result;
     } catch (error) {
       if (error instanceof ConnectorError) throw error;
+      if (isAbortError(error)) {
+        return {
+          success: false,
+          error: 'Overall send timeout exceeded (25s)',
+          retryable: true,
+          errorCode: 'BACKEND_UNAVAILABLE',
+          httpStatus: 502,
+        };
+      }
       const message =
         error instanceof Error ? error.message : 'Unknown transport error';
       return {
@@ -92,7 +116,7 @@ export class BotFrameworkAdapter implements DeliveryAdapter {
     }
   }
 
-  private async sendOnce(payload: DeliveryPayload): Promise<DeliveryResult> {
+  private async sendOnce(payload: DeliveryPayload, overallSignal: AbortSignal): Promise<DeliveryResult> {
     const token = await this.getToken();
     const serviceUrl = this.config.serviceUrl.replace(/\/$/, '');
     const endpoint = `${serviceUrl}/v3/conversations`;
@@ -111,7 +135,7 @@ export class BotFrameworkAdapter implements DeliveryAdapter {
         },
         activity: payload.activity,
       }),
-      signal: AbortSignal.timeout(10_000),
+      signal: AbortSignal.any([AbortSignal.timeout(10_000), overallSignal]),
     });
 
     if (response.ok) {
@@ -204,9 +228,8 @@ export class BotFrameworkAdapter implements DeliveryAdapter {
       httpStatus: response.status >= 400 && response.status < 500 ? response.status : 500,
     };
   }
+}
 
-  async healthCheck(): Promise<boolean> {
-    // Always ready — token acquisition is lazy and happens on first send()
-    return true;
-  }
+function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException && (error.name === 'AbortError' || error.name === 'TimeoutError');
 }

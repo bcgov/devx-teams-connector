@@ -128,20 +128,6 @@ describe('BotFrameworkAdapter', () => {
     expect(result.httpStatus).toBe(400);
   });
 
-  it('healthCheck always returns true', async () => {
-    const adapter = new BotFrameworkAdapter(
-      {
-        botId: 'bot-id',
-        botSecret: 'bot-secret',
-        serviceUrl: 'https://smba.trafficmanager.net/teams',
-        tokenTenant: 'botframework.com',
-      },
-      vi.fn(),
-    );
-
-    expect(await adapter.healthCheck()).toBe(true);
-  });
-
   it('uses configured token tenant for oauth endpoint', async () => {
     const fetchMock = vi
       .fn<typeof fetch>()

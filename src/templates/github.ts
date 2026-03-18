@@ -5,7 +5,7 @@ import { createBaseCard, createCardFrame, createFactSet, createSectionSeparator,
 
 export const GitHubTemplateDataSchema = z.object({
   event: z.enum(['opened', 'merged', 'closed']),
-  title: z.string().min(1),
+  title: z.string().min(1).max(200),
   repo: z.string().min(1),
   author: z.string().min(1),
   url: z.string().url(),

@@ -18,10 +18,9 @@ describe('health endpoint', () => {
     version: '1.0.0',
   };
 
-  it('returns healthy when adapter is healthy', async () => {
+  it('returns healthy status with version and uptime', async () => {
     const adapter: DeliveryAdapter = {
       send: vi.fn().mockResolvedValue({ success: true }),
-      healthCheck: vi.fn().mockResolvedValue(true),
     };
 
     const app = createApp({
@@ -40,33 +39,7 @@ describe('health endpoint', () => {
 
     expect(response.status).toBe(200);
     expect(body.status).toBe('healthy');
-    expect(body.adapter).toBe('botFramework');
-    expect(body.adapterHealthy).toBe(true);
+    expect(body.version).toBe('1.0.0');
     expect(typeof body.uptime).toBe('number');
-  });
-
-  it('returns degraded when adapter is not healthy', async () => {
-    const adapter: DeliveryAdapter = {
-      send: vi.fn().mockResolvedValue({ success: true }),
-      healthCheck: vi.fn().mockResolvedValue(false),
-    };
-
-    const app = createApp({
-      config,
-      adapter,
-      logger: pino({ enabled: false }),
-      enableHttpLogging: false,
-    });
-
-    const response = await invokeApp(app, {
-      method: 'GET',
-      path: '/api/v1/health',
-    });
-
-    const body = response.body as Record<string, unknown>;
-
-    expect(response.status).toBe(200);
-    expect(body.status).toBe('degraded');
-    expect(body.adapterHealthy).toBe(false);
   });
 });

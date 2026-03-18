@@ -33,7 +33,6 @@ describe('messages endpoint', () => {
   beforeEach(() => {
     adapter = {
       send: vi.fn().mockResolvedValue({ success: true, teamsMessageId: 'abc' }),
-      healthCheck: vi.fn().mockResolvedValue(true),
     };
   });
 

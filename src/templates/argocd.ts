@@ -13,7 +13,7 @@ import {
 
 export const ArgoCdTemplateDataSchema = z.object({
   event: z.enum(['sync_succeeded', 'sync_failed', 'out_of_sync']),
-  application: z.string().min(1),
+  application: z.string().min(1).max(200),
   syncStatus: z.enum(['Synced', 'OutOfSync', 'Unknown']).optional(),
   healthStatus: z.enum(['Healthy', 'Degraded', 'Progressing', 'Missing', 'Suspended', 'Unknown']).optional(),
   revision: z.string().min(1).optional(),

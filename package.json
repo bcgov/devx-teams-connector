@@ -1,6 +1,6 @@
 {
   "name": "teams-connector-poc",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "description": "Minimal Teams Connector PoC for posting to Teams via Bot Framework",
   "main": "dist/index.js",
