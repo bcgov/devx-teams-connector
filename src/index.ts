@@ -55,6 +55,7 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error('Fatal startup error:', err instanceof Error ? err.message : err);
+  const message = err instanceof Error ? err.message : 'unknown error';
+  console.error('Fatal startup error:', message);
   process.exit(1);
 });
