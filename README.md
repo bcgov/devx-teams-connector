@@ -8,7 +8,7 @@ Implemented:
 - `POST /api/v1/messages`
 - `POST /api/v1/messages/preview` (validate + render payload only, no Bot Framework delivery)
 - `GET /api/v1/health`
-- API key auth + required `X-User-Entra-Id` header
+- API key auth (Bearer token)
 - Explicit `teamId + channelId` targeting
 - Content kinds:
   - `text`
@@ -108,7 +108,6 @@ curl http://localhost:3000/api/v1/health
 ```bash
 curl -X POST http://localhost:3000/api/v1/messages \
   -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
-  -H "X-User-Entra-Id: ${USER_ENTRA_ID}" \
   -H "Content-Type: application/json" \
   -d '{
     "target": {
@@ -127,7 +126,6 @@ curl -X POST http://localhost:3000/api/v1/messages \
 ```bash
 curl -X POST http://localhost:3000/api/v1/messages/preview \
   -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
-  -H "X-User-Entra-Id: ${USER_ENTRA_ID}" \
   -H "Content-Type: application/json" \
   -d '{
     "target": {
@@ -150,7 +148,6 @@ curl -X POST http://localhost:3000/api/v1/messages/preview \
 ```bash
 curl -X POST http://localhost:3000/api/v1/messages \
   -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
-  -H "X-User-Entra-Id: ${USER_ENTRA_ID}" \
   -H "Content-Type: application/json" \
   -d '{
     "target": {
@@ -175,7 +172,6 @@ curl -X POST http://localhost:3000/api/v1/messages \
 ```bash
 curl -X POST http://localhost:3000/api/v1/messages \
   -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
-  -H "X-User-Entra-Id: ${USER_ENTRA_ID}" \
   -H "Content-Type: application/json" \
   -d '{
     "target": {
@@ -202,7 +198,6 @@ curl -X POST http://localhost:3000/api/v1/messages \
 ```bash
 curl -X POST http://localhost:3000/api/v1/messages \
   -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
-  -H "X-User-Entra-Id: ${USER_ENTRA_ID}" \
   -H "Content-Type: application/json" \
   -d '{
     "target": {
@@ -229,7 +224,6 @@ curl -X POST http://localhost:3000/api/v1/messages \
 ```bash
 curl -X POST http://localhost:3000/api/v1/messages \
   -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
-  -H "X-User-Entra-Id: ${USER_ENTRA_ID}" \
   -H "Content-Type: application/json" \
   -d '{
     "target": {
@@ -255,7 +249,6 @@ curl -X POST http://localhost:3000/api/v1/messages \
 ```bash
 curl -X POST http://localhost:3000/api/v1/messages \
   -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
-  -H "X-User-Entra-Id: ${USER_ENTRA_ID}" \
   -H "Content-Type: application/json" \
   -d '{
     "target": {
@@ -282,7 +275,6 @@ curl -X POST http://localhost:3000/api/v1/messages \
 ```bash
 curl -X POST http://localhost:3000/api/v1/messages \
   -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
-  -H "X-User-Entra-Id: ${USER_ENTRA_ID}" \
   -H "Content-Type: application/json" \
   -d '{
     "target": {
@@ -375,7 +367,6 @@ npm run send:test -- --type template --template argocd --event sync_failed --app
 
 Script env vars:
 - `CONNECTOR_API_KEY`
-- `USER_ENTRA_ID`
 - `TEAM_ID`
 - `CHANNEL_ID`
 - `CONNECTOR_URL` (optional, default `http://localhost:3000`)

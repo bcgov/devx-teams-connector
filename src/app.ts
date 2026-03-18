@@ -58,7 +58,12 @@ export function createApp(options: AppOptions): Express {
     limit: 300,
     standardHeaders: 'draft-7',
     legacyHeaders: false,
-    keyGenerator: () => 'global',
+    keyGenerator: (req) => {
+      const teamId = req.body?.target?.teamId;
+      return typeof teamId === 'string' && teamId.length > 0
+        ? `team:${teamId}`
+        : 'global';
+    },
   }));
   apiRouter.use(createMessagesRouter(messageService));
 
