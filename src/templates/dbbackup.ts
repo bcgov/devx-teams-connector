@@ -40,7 +40,7 @@ export function renderDbBackupTemplate(data: DbBackupTemplateData): AdaptiveCard
     },
     {
       type: 'TextBlock',
-      text: data.ProjectFriendlyName,
+      text: data.projectFriendlyName,
       weight: 'Bolder',
       size: 'Large',
       wrap: true,
