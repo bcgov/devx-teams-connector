@@ -6,7 +6,7 @@ import { createBaseCard, createCardFrame, createFactSet, createSectionSeparator,
 export const DbBackupTemplateDataSchema = z.object({
   status: z.enum(['info', 'warn', 'error']), // statusCode
   projectName: z.string().min(1), // projectName
-  ProjectFriendlyName: z.string().min(1), // projectFriendlyName
+  projectFriendlyName: z.string().min(1), // projectFriendlyName
   message: z.string().min(1).optional(), // message
 });
 

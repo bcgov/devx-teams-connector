@@ -22,7 +22,15 @@ export interface GitHubPrTemplateData {
 }
 
 export interface GitHubWorkflowTemplateData {
-
+  event: string;
+  conclusion?: string;
+  workflow: string;
+  repo: string;
+  branch: string;
+  author: string;
+  url: string;
+  sha?: string;
+  message?: string;
 }
 
 export interface SysdigTemplateData {
@@ -45,7 +53,7 @@ export interface UptimeTemplateData {
 export interface DbBackupTemplateData {
   status: 'info' | 'warn' | 'error';
   projectName: string;
-  ProjectFriendlyName: string;
+  projectFriendlyName: string;
   message?: string;
 }
 

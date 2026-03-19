@@ -53,6 +53,22 @@ describe('validateSendMessageRequest', () => {
         target,
         content: {
           kind: 'template',
+          template: 'github-workflow',
+          data: {
+            event: 'completed',
+            conclusion: 'success',
+            workflow: 'CI/CD Pipeline',
+            repo: 'org/repo',
+            branch: 'main',
+            author: 'octocat',
+            url: 'https://github.com/org/repo/actions/runs/123',
+          },
+        },
+      },
+      {
+        target,
+        content: {
+          kind: 'template',
           template: 'sysdig',
           data: {
             severity: 1,

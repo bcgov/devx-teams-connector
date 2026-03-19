@@ -335,6 +335,18 @@ describe('messages endpoint', () => {
         },
       },
       {
+        template: 'github-workflow',
+        data: {
+          event: 'completed',
+          conclusion: 'failure',
+          workflow: 'CI/CD Pipeline',
+          repo: 'org/repo',
+          branch: 'main',
+          author: 'octocat',
+          url: 'https://github.com/org/repo/actions/runs/456',
+        },
+      },
+      {
         template: 'sysdig',
         data: {
           severity: 1,
