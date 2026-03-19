@@ -4,30 +4,28 @@ import type { AdaptiveCard, DbBackupTemplateData } from '../types';
 import { createBaseCard, createCardFrame, createFactSet, createSectionSeparator, toTextColor } from './shared';
 
 export const DbBackupTemplateDataSchema = z.object({
-  status: z.enum(['success', 'warning', 'failed']),
-  database: z.string().min(1).max(200),
-  duration: z.string().min(1).optional(),
-  size: z.string().min(1).optional(),
-  message: z.string().min(1).optional(),
-  container: z.string().min(1).optional(),
-}).strict();
+  status: z.enum(['info', 'warn', 'error']), // statusCode
+  projectName: z.string().min(1), // projectName
+  ProjectFriendlyName: z.string().min(1), // projectFriendlyName
+  message: z.string().min(1).optional(), // message
+});
 
 const statusStyles: Record<DbBackupTemplateData['status'], 'good' | 'warning' | 'attention'> = {
-  success: 'good',
-  warning: 'warning',
-  failed: 'attention',
+  info: 'good',
+  warn: 'warning',
+  error: 'attention',
 };
 
 const statusTitles: Record<DbBackupTemplateData['status'], string> = {
-  success: 'Database Backup · Completed',
-  warning: 'Database Backup · Warning',
-  failed: 'Database Backup · Failed',
+  info: 'Database Backup · Info',
+  warn: 'Database Backup · Warning',
+  error: 'Database Backup · Error',
 };
 
 const statusFacts: Record<DbBackupTemplateData['status'], string> = {
-  success: '✅ Success',
-  warning: '⚠️ Warning',
-  failed: '❌ Failed',
+  info: '✅ Info',
+  warn: '⚠️ Warning',
+  error: '❌ Error',
 };
 
 export function renderDbBackupTemplate(data: DbBackupTemplateData): AdaptiveCard {

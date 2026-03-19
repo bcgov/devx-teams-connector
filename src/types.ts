@@ -12,8 +12,8 @@ export interface GenericTemplateData {
   source?: string;
 }
 
-export interface GitHubTemplateData {
-  event: 'opened' | 'merged' | 'closed';
+export interface GitHubPrTemplateData {
+  event: string;
   title: string;
   repo: string;
   author: string;
@@ -21,9 +21,14 @@ export interface GitHubTemplateData {
   body?: string;
 }
 
+export interface GitHubWorkflowTemplateData {
+
+}
+
 export interface SysdigTemplateData {
-  severity: 'critical' | 'high' | 'medium' | 'low' | 'info';
+  severity: number;
   alertName: string;
+  state?: 'active' | 'ok';
   scope?: string;
   description?: string;
   timestamp?: string;
@@ -31,20 +36,17 @@ export interface SysdigTemplateData {
 }
 
 export interface UptimeTemplateData {
-  status: 'up' | 'degraded' | 'down';
+  status: 'up' | 'down';
   service: string;
-  responseTimeMs?: number;
   downSince?: string;
   url?: string;
 }
 
 export interface DbBackupTemplateData {
-  status: 'success' | 'warning' | 'failed';
-  database: string;
-  duration?: string;
-  size?: string;
+  status: 'info' | 'warn' | 'error';
+  projectName: string;
+  ProjectFriendlyName: string;
   message?: string;
-  container?: string;
 }
 
 export interface ArgoCdTemplateData {
@@ -60,11 +62,12 @@ export interface ArgoCdTemplateData {
   url?: string;
 }
 
-export type TemplateName = 'generic' | 'github' | 'sysdig' | 'uptime' | 'db_backup' | 'argocd';
+export type TemplateName = 'generic' | 'github_pull_request' | 'github_workflow' | 'sysdig' | 'uptime' | 'db_backup' | 'argocd';
 
-export interface TemplateDataByName {
+export interface TemplateDataByName {     
   generic: GenericTemplateData;
-  github: GitHubTemplateData;
+  github_pull_request: GitHubPrTemplateData;
+  github_workflow: GitHubWorkflowTemplateData;
   sysdig: SysdigTemplateData;
   uptime: UptimeTemplateData;
   db_backup: DbBackupTemplateData;
@@ -73,6 +76,11 @@ export interface TemplateDataByName {
 
 export interface TextContent {
   kind: 'text';
+  text: string;                                                                                                                                                                                                              nb 
+}
+
+export interface HtmlContent {
+  kind: 'html';
   text: string;
 }
 
@@ -82,10 +90,16 @@ export interface GenericTemplateContent {
   data: GenericTemplateData;
 }
 
-export interface GitHubTemplateContent {
+export interface GitHubPrTemplateContent {
   kind: 'template';
-  template: 'github';
-  data: GitHubTemplateData;
+  template: 'github-pull_request';
+  data: GitHubPrTemplateData;
+}
+
+export interface GitHubWorkflowTemplateContent {
+  kind: 'template';
+  template: 'github-workflow';
+  data: GitHubWorkflowTemplateData;
 }
 
 export interface SysdigTemplateContent {
@@ -114,13 +128,14 @@ export interface ArgoCdTemplateContent {
 
 export type TemplateContent =
   | GenericTemplateContent
-  | GitHubTemplateContent
+  | GitHubPrTemplateContent
+  | GitHubWorkflowTemplateContent
   | SysdigTemplateContent
   | UptimeTemplateContent
   | DbBackupTemplateContent
   | ArgoCdTemplateContent;
 
-export type Content = TextContent | TemplateContent;
+export type Content = TextContent | HtmlContent | TemplateContent;
 
 export interface SendMessageRequest {
   target: Target;

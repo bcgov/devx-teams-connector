@@ -3,13 +3,14 @@ import type { AdaptiveCard, TemplateDataByName, TemplateName } from '../types';
 import { ArgoCdTemplateDataSchema, renderArgoCdTemplate } from './argocd';
 import { DbBackupTemplateDataSchema, renderDbBackupTemplate } from './dbbackup';
 import { GenericTemplateDataSchema, renderGenericTemplate } from './generic';
-import { GitHubTemplateDataSchema, renderGitHubTemplate } from './github';
+import { GitHubPrTemplateDataSchema, GitHubWorkflowTemplateDataSchema, renderGitHubPrTemplate, renderGitHubWorkflowTemplate } from './github';
 import { SysdigTemplateDataSchema, renderSysdigTemplate } from './sysdig';
 import { UptimeTemplateDataSchema, renderUptimeTemplate } from './uptime';
 
 export const templateDataSchemas = {
   generic: GenericTemplateDataSchema,
-  github: GitHubTemplateDataSchema,
+  github_pull_request: GitHubPrTemplateDataSchema,
+  github_workflow: GitHubWorkflowTemplateDataSchema,
   sysdig: SysdigTemplateDataSchema,
   uptime: UptimeTemplateDataSchema,
   db_backup: DbBackupTemplateDataSchema,
@@ -18,7 +19,8 @@ export const templateDataSchemas = {
 
 const templateRenderers: { [K in TemplateName]: (data: TemplateDataByName[K]) => AdaptiveCard } = {
   generic: renderGenericTemplate,
-  github: renderGitHubTemplate,
+  github_pull_request: renderGitHubPrTemplate,
+  github_workflow: renderGitHubWorkflowTemplate,
   sysdig: renderSysdigTemplate,
   uptime: renderUptimeTemplate,
   db_backup: renderDbBackupTemplate,

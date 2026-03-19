@@ -7,52 +7,59 @@ import type { SendMessageRequest } from '../types';
 const TargetSchema = z.object({
   teamId: z.string().uuid(),
   channelId: z.string().min(1),
-}).strict();
+});
 
 const TextContentSchema = z.object({
   kind: z.literal('text'),
   text: z.string().min(1).max(10000),
-}).strict();
+});
 
 const GenericTemplateContentSchema = z.object({
   kind: z.literal('template'),
   template: z.literal('generic'),
   data: templateDataSchemas.generic,
-}).strict();
+});
 
-const GitHubTemplateContentSchema = z.object({
+const GitHubPrTemplateContentSchema = z.object({
   kind: z.literal('template'),
-  template: z.literal('github'),
-  data: templateDataSchemas.github,
-}).strict();
+  template: z.literal('github-pull_request'),
+  data: templateDataSchemas.github_pull_request.github,
+});
+
+const GitHubWorkTemplateContentSchema = z.object({
+  kind: z.literal('template'),
+  template: z.literal('github-workflow'),
+  data: templateDataSchemas.github_pull_request.github,
+});
 
 const SysdigTemplateContentSchema = z.object({
   kind: z.literal('template'),
   template: z.literal('sysdig'),
   data: templateDataSchemas.sysdig,
-}).strict();
+});
 
 const UptimeTemplateContentSchema = z.object({
   kind: z.literal('template'),
   template: z.literal('uptime'),
   data: templateDataSchemas.uptime,
-}).strict();
+});
 
 const DbBackupTemplateContentSchema = z.object({
   kind: z.literal('template'),
   template: z.literal('db_backup'),
   data: templateDataSchemas.db_backup,
-}).strict();
+});
 
 const ArgoCdTemplateContentSchema = z.object({
   kind: z.literal('template'),
   template: z.literal('argocd'),
   data: templateDataSchemas.argocd,
-}).strict();
+});
 
 const TemplateContentSchema = z.discriminatedUnion('template', [
   GenericTemplateContentSchema,
-  GitHubTemplateContentSchema,
+  GitHubPrTemplateContentSchema,
+  GitHubWorkTemplateContentSchema,
   SysdigTemplateContentSchema,
   UptimeTemplateContentSchema,
   DbBackupTemplateContentSchema,
@@ -69,7 +76,7 @@ export const SendMessageRequestSchema: z.ZodType<SendMessageRequest> = z.object(
   target: TargetSchema,
   content: ContentSchema,
   metadata: MetadataSchema,
-}).strict();
+});
 
 export type SendMessageRequestInput = z.infer<typeof SendMessageRequestSchema>;
 

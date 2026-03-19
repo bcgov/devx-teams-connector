@@ -11,13 +11,14 @@ import {
 } from './shared';
 
 export const SysdigTemplateDataSchema = z.object({
-  severity: z.enum(['critical', 'high', 'medium', 'low', 'info']),
-  alertName: z.string().min(1).max(200),
-  scope: z.string().min(1).optional(),
-  description: z.string().min(1).optional(),
-  timestamp: IsoTimestampSchema.optional(),
-  url: z.string().url().optional(),
-}).strict();
+  severity: z.number().int().min(0).max(7), // alert.severity (0=critical, 1=high, 2-3=medium, 4-5=low, 6-7=info)
+  alertName: z.string().min(1).max(200), // alert.name
+  state: z.enum(['active', 'ok']).optional(), // alert.state
+  scope: z.string().min(1).optional(), // alert.scope
+  description: z.string().min(1).optional(), // alert.description
+  timestamp: IsoTimestampSchema.optional(), // timestamp
+  url: z.string().url().optional(), // alert.editUrl
+});
 
 const severityColors: Record<SysdigTemplateData['severity'], string> = {
   critical: 'Attention',

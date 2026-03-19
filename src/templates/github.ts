@@ -1,30 +1,31 @@
 import { z } from 'zod';
 
-import type { AdaptiveCard, GitHubTemplateData } from '../types';
+import type { AdaptiveCard, GitHubPrTemplateData, GitHubWorkflowTemplateData } from '../types';
 import { createBaseCard, createCardFrame, createFactSet, createSectionSeparator, truncateText } from './shared';
 
-export const GitHubTemplateDataSchema = z.object({
-  event: z.enum(['opened', 'merged', 'closed']),
-  title: z.string().min(1).max(200),
-  repo: z.string().min(1),
-  author: z.string().min(1),
-  url: z.string().url(),
-  body: z.string().optional(),
-}).strict();
+export const GitHubPrTemplateDataSchema = z.object({
+  event: z.string().min(1), // action: "opened" | "closed"
+  title: z.string().min(1).max(200), // pull_request.title
+  repo: z.string().min(1), // repository.full_name
+  author: z.string().min(1), // pull_request.user.login 
+  url: z.string().url(), // pull_request.html_url
+  body: z.string().optional(), // pull_request.body
+});
 
-const eventBadges: Record<GitHubTemplateData['event'], string> = {
+export const GitHubWorkflowTemplateDataSchema = z.object({
+});
+
+const eventBadges: Record<GitHubPrTemplateData['event'], string> = {
   opened: 'Pull Request Opened',
-  merged: 'Pull Request Merged',
   closed: 'Pull Request Closed',
 };
 
-const eventTextColors: Record<GitHubTemplateData['event'], 'Good' | 'Accent' | 'Attention'> = {
+const eventTextColors: Record<GitHubPrTemplateData['event'], 'Good' | 'Attention'> = {
   opened: 'Good',
-  merged: 'Accent',
   closed: 'Attention',
 };
 
-export function renderGitHubTemplate(data: GitHubTemplateData): AdaptiveCard {
+export function renderGitHubPrTemplate(data: GitHubPrTemplateData): AdaptiveCard {
   const contentItems: Array<Record<string, unknown>> = [
     {
       type: 'TextBlock',
@@ -79,6 +80,15 @@ export function renderGitHubTemplate(data: GitHubTemplateData): AdaptiveCard {
       },
     ],
   });
+
+  const body: Array<Record<string, unknown>> = [createCardFrame(contentItems)];
+
+  return createBaseCard(body);
+}
+
+export function renderGitHubWorkflowTemplate(data: GitHubWorkflowTemplateData): AdaptiveCard {
+  const contentItems: Array<Record<string, unknown>> = [
+  ];
 
   const body: Array<Record<string, unknown>> = [createCardFrame(contentItems)];
 

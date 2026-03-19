@@ -11,16 +11,14 @@ import {
 } from './shared';
 
 export const UptimeTemplateDataSchema = z.object({
-  status: z.enum(['up', 'degraded', 'down']),
-  service: z.string().min(1).max(200),
-  responseTimeMs: z.number().nonnegative().optional(),
-  downSince: IsoTimestampSchema.optional(),
-  url: z.string().url().optional(),
-}).strict();
+  status: z.enum(['up', 'down']), // data.alert.is_up
+  service: z.string().min(1), // data.service.display_name
+  downSince: IsoTimestampSchema.optional(), // data.alert.created_at
+  url: z.string().url().optional(), // data.links.alert_details
+});
 
 const statusBadges: Record<UptimeTemplateData['status'], string> = {
   up: '🟢 UP',
-  degraded: '🟡 DEGRADED',
   down: '🔴 DOWN',
 };
 
