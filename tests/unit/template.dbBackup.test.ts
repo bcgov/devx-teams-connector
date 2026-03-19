@@ -14,7 +14,7 @@ describe('renderDbBackupTemplate', () => {
       const card = renderDbBackupTemplate({
         status,
         projectName: 'abc123',
-        ProjectFriendlyName: 'My Project',
+        projectFriendlyName: 'My Project',
       });
 
       expect(card.actions).toBeUndefined();
@@ -25,7 +25,7 @@ describe('renderDbBackupTemplate', () => {
     const card = renderDbBackupTemplate({
       status: 'warn',
       projectName: 'abc123',
-      ProjectFriendlyName: 'My Project',
+      projectFriendlyName: 'My Project',
       message: 'Completed with retries',
     });
 

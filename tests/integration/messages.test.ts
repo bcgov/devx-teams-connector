@@ -366,7 +366,7 @@ describe('messages endpoint', () => {
         data: {
           status: 'info',
           projectName: 'abc123',
-          ProjectFriendlyName: 'My Project',
+          projectFriendlyName: 'My Project',
         },
       },
       {
