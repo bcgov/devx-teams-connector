@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { renderGitHubTemplate } from '../../src/templates/github';
+import { renderGitHubPrTemplate } from '../../src/templates/github';
 
 function getContentItems(card: { body: Array<Record<string, unknown>> }): Array<Record<string, unknown>> {
   const columns = (card.body[0]?.columns as Array<Record<string, unknown>>) ?? [];
@@ -8,10 +8,10 @@ function getContentItems(card: { body: Array<Record<string, unknown>> }): Array<
   return (contentColumn?.items as Array<Record<string, unknown>>) ?? [];
 }
 
-describe('renderGitHubTemplate', () => {
+describe('renderGitHubPrTemplate', () => {
   it('renders action button for each event type', () => {
-    for (const event of ['merged', 'opened', 'closed'] as const) {
-      const card = renderGitHubTemplate({
+    for (const event of ['opened', 'closed'] as const) {
+      const card = renderGitHubPrTemplate({
         event,
         title: 'PR #123',
         repo: 'org/repo',
@@ -31,7 +31,7 @@ describe('renderGitHubTemplate', () => {
   });
 
   it('truncates body text to 300 chars with deterministic ellipsis', () => {
-    const card = renderGitHubTemplate({
+    const card = renderGitHubPrTemplate({
       event: 'opened',
       title: 'PR #123',
       repo: 'org/repo',

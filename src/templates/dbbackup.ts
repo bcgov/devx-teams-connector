@@ -40,7 +40,7 @@ export function renderDbBackupTemplate(data: DbBackupTemplateData): AdaptiveCard
     },
     {
       type: 'TextBlock',
-      text: data.database,
+      text: data.ProjectFriendlyName,
       weight: 'Bolder',
       size: 'Large',
       wrap: true,
@@ -58,7 +58,7 @@ export function renderDbBackupTemplate(data: DbBackupTemplateData): AdaptiveCard
           text: data.message,
           wrap: true,
           size: 'Small',
-          ...(data.status === 'failed' ? { color: 'Attention', weight: 'Bolder' } : { isSubtle: true }),
+          ...(data.status === 'error' ? { color: 'Attention', weight: 'Bolder' } : { isSubtle: true }),
         },
       ],
     });
@@ -66,9 +66,7 @@ export function renderDbBackupTemplate(data: DbBackupTemplateData): AdaptiveCard
 
   const factSet = createFactSet([
     { title: 'Status', value: statusFacts[data.status] },
-    { title: 'Duration', value: data.duration },
-    { title: 'Size', value: data.size },
-    { title: 'Container', value: data.container },
+    { title: 'Project', value: data.projectName },
   ]);
 
   if (factSet) {

@@ -62,12 +62,12 @@ export interface ArgoCdTemplateData {
   url?: string;
 }
 
-export type TemplateName = 'generic' | 'github_pull_request' | 'github_workflow' | 'sysdig' | 'uptime' | 'db_backup' | 'argocd';
+export type TemplateName = 'generic' | 'github-pull_request' | 'github-workflow' | 'sysdig' | 'uptime' | 'db_backup' | 'argocd';
 
-export interface TemplateDataByName {     
+export interface TemplateDataByName {
   generic: GenericTemplateData;
-  github_pull_request: GitHubPrTemplateData;
-  github_workflow: GitHubWorkflowTemplateData;
+  'github-pull_request': GitHubPrTemplateData;
+  'github-workflow': GitHubWorkflowTemplateData;
   sysdig: SysdigTemplateData;
   uptime: UptimeTemplateData;
   db_backup: DbBackupTemplateData;
@@ -76,7 +76,7 @@ export interface TemplateDataByName {
 
 export interface TextContent {
   kind: 'text';
-  text: string;                                                                                                                                                                                                              nb 
+  text: string;
 }
 
 export interface HtmlContent {

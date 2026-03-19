@@ -10,24 +10,23 @@ function getContentItems(card: { body: Array<Record<string, unknown>> }): Array<
 
 describe('renderDbBackupTemplate', () => {
   it('does not set card-level actions for any status', () => {
-    for (const status of ['success', 'warning', 'failed'] as const) {
+    for (const status of ['info', 'warn', 'error'] as const) {
       const card = renderDbBackupTemplate({
         status,
-        database: 'users',
+        projectName: 'abc123',
+        ProjectFriendlyName: 'My Project',
       });
 
       expect(card.actions).toBeUndefined();
     }
   });
 
-  it('renders status, duration, size, and container facts when provided', () => {
+  it('renders status and project facts when provided', () => {
     const card = renderDbBackupTemplate({
-      status: 'warning',
-      database: 'users',
-      duration: '2m 03s',
-      size: '1.2 GB',
+      status: 'warn',
+      projectName: 'abc123',
+      ProjectFriendlyName: 'My Project',
       message: 'Completed with retries',
-      container: 'backup-job-1',
     });
 
     const items = getContentItems(card);
@@ -40,9 +39,7 @@ describe('renderDbBackupTemplate', () => {
 
     expect(facts).toEqual([
       { title: 'Status:', value: '⚠️ Warning' },
-      { title: 'Duration:', value: '2m 03s' },
-      { title: 'Size:', value: '1.2 GB' },
-      { title: 'Container:', value: 'backup-job-1' },
+      { title: 'Project:', value: 'abc123' },
     ]);
   });
 });

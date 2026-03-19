@@ -14,6 +14,11 @@ const TextContentSchema = z.object({
   text: z.string().min(1).max(10000),
 });
 
+const HtmlContentSchema = z.object({
+  kind: z.literal('html'),
+  text: z.string().min(1).max(10000),
+});
+
 const GenericTemplateContentSchema = z.object({
   kind: z.literal('template'),
   template: z.literal('generic'),
@@ -23,13 +28,13 @@ const GenericTemplateContentSchema = z.object({
 const GitHubPrTemplateContentSchema = z.object({
   kind: z.literal('template'),
   template: z.literal('github-pull_request'),
-  data: templateDataSchemas.github_pull_request.github,
+  data: templateDataSchemas['github-pull_request'],
 });
 
 const GitHubWorkTemplateContentSchema = z.object({
   kind: z.literal('template'),
   template: z.literal('github-workflow'),
-  data: templateDataSchemas.github_pull_request.github,
+  data: templateDataSchemas['github-workflow'],
 });
 
 const SysdigTemplateContentSchema = z.object({
@@ -66,7 +71,7 @@ const TemplateContentSchema = z.discriminatedUnion('template', [
   ArgoCdTemplateContentSchema,
 ]);
 
-const ContentSchema = z.union([TextContentSchema, TemplateContentSchema]);
+const ContentSchema = z.union([TextContentSchema, HtmlContentSchema, TemplateContentSchema]);
 
 const MetadataSchema = z.record(z.string().min(1).max(64), z.string().max(256))
   .refine((obj) => Object.keys(obj).length <= 20, { message: 'metadata: too many keys (max 20)' })

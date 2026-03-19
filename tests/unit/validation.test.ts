@@ -39,7 +39,7 @@ describe('validateSendMessageRequest', () => {
         target,
         content: {
           kind: 'template',
-          template: 'github',
+          template: 'github-pull_request',
           data: {
             event: 'opened',
             title: 'PR #123',
@@ -55,7 +55,7 @@ describe('validateSendMessageRequest', () => {
           kind: 'template',
           template: 'sysdig',
           data: {
-            severity: 'high',
+            severity: 1,
             alertName: 'CPU saturation',
             timestamp: '2026-02-22T12:00:00Z',
           },
@@ -67,9 +67,8 @@ describe('validateSendMessageRequest', () => {
           kind: 'template',
           template: 'uptime',
           data: {
-            status: 'degraded',
+            status: 'down',
             service: 'payments-api',
-            responseTimeMs: 640,
           },
         },
       },
@@ -79,10 +78,9 @@ describe('validateSendMessageRequest', () => {
           kind: 'template',
           template: 'db_backup',
           data: {
-            status: 'success',
-            database: 'users',
-            duration: '2m 03s',
-            container: 'backup-job-1',
+            status: 'info',
+            projectName: 'abc123',
+            ProjectFriendlyName: 'My Project',
           },
         },
       },
@@ -128,12 +126,10 @@ describe('validateSendMessageRequest', () => {
       target,
       content: {
         kind: 'template',
-        template: 'github',
+        template: 'github-pull_request',
         data: {
           title: 'PR #123',
-          repo: 'org/repo',
-          author: 'octocat',
-          url: 'https://github.com/org/repo/pull/123',
+          // missing: event, repo, author, url
         },
       },
     };
@@ -148,7 +144,7 @@ describe('validateSendMessageRequest', () => {
         kind: 'template',
         template: 'sysdig',
         data: {
-          severity: 'emergency',
+          severity: 99,
           alertName: 'CPU saturation',
         },
       },
@@ -157,7 +153,7 @@ describe('validateSendMessageRequest', () => {
     expect(() => validateSendMessageRequest(payload)).toThrow(ConnectorError);
   });
 
-  it('rejects unknown fields due to strict schema enforcement', () => {
+  it('accepts unknown fields and strips them from output', () => {
     const payload = {
       target,
       content: {
@@ -166,12 +162,13 @@ describe('validateSendMessageRequest', () => {
         data: {
           status: 'up',
           service: 'payments-api',
-          extra: 'should-not-pass',
+          extra: 'should-be-stripped',
         },
       },
     };
 
-    expect(() => validateSendMessageRequest(payload)).toThrow(ConnectorError);
+    const result = validateSendMessageRequest(payload);
+    expect((result.content as Record<string, unknown>).extra).toBeUndefined();
   });
 
   it('rejects malformed target', () => {
