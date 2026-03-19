@@ -111,6 +111,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ${{ steps.vars.outputs.image }}:ci-${{ github.sha }}
+          version: "v0.55.2"
           format: sarif
           output: trivy-results.sarif
           vuln-type: os,library
