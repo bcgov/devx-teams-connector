@@ -39,7 +39,7 @@ describe('validateSendMessageRequest', () => {
         target,
         content: {
           kind: 'template',
-          template: 'github-pull_request',
+          template: 'github_pull_request',
           data: {
             event: 'opened',
             title: 'PR #123',
@@ -53,7 +53,7 @@ describe('validateSendMessageRequest', () => {
         target,
         content: {
           kind: 'template',
-          template: 'github-workflow',
+          template: 'github_workflow_run',
           data: {
             event: 'completed',
             conclusion: 'success',
@@ -142,7 +142,7 @@ describe('validateSendMessageRequest', () => {
       target,
       content: {
         kind: 'template',
-        template: 'github-pull_request',
+        template: 'github_pull_request',
         data: {
           title: 'PR #123',
           // missing: event, repo, author, url

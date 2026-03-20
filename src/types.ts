@@ -70,12 +70,12 @@ export interface ArgoCdTemplateData {
   url?: string;
 }
 
-export type TemplateName = 'generic' | 'github-pull_request' | 'github-workflow' | 'sysdig' | 'uptime' | 'db_backup' | 'argocd';
+export type TemplateName = 'generic' | 'github_pull_request' | 'github_workflow_run' | 'sysdig' | 'uptime' | 'db_backup' | 'argocd';
 
 export interface TemplateDataByName {
   generic: GenericTemplateData;
-  'github-pull_request': GitHubPrTemplateData;
-  'github-workflow': GitHubWorkflowTemplateData;
+  github_pull_request: GitHubPrTemplateData;
+  github_workflow_run: GitHubWorkflowTemplateData;
   sysdig: SysdigTemplateData;
   uptime: UptimeTemplateData;
   db_backup: DbBackupTemplateData;
@@ -100,13 +100,13 @@ export interface GenericTemplateContent {
 
 export interface GitHubPrTemplateContent {
   kind: 'template';
-  template: 'github-pull_request';
+  template: 'github_pull_request';
   data: GitHubPrTemplateData;
 }
 
 export interface GitHubWorkflowTemplateContent {
   kind: 'template';
-  template: 'github-workflow';
+  template: 'github_workflow_run';
   data: GitHubWorkflowTemplateData;
 }
 

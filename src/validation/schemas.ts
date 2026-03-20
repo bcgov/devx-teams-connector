@@ -27,14 +27,14 @@ const GenericTemplateContentSchema = z.object({
 
 const GitHubPrTemplateContentSchema = z.object({
   kind: z.literal('template'),
-  template: z.literal('github-pull_request'),
-  data: templateDataSchemas['github-pull_request'],
+  template: z.literal('github_pull_request'),
+  data: templateDataSchemas['github_pull_request'],
 });
 
 const GitHubWorkTemplateContentSchema = z.object({
   kind: z.literal('template'),
-  template: z.literal('github-workflow'),
-  data: templateDataSchemas['github-workflow'],
+  template: z.literal('github_workflow_run'),
+  data: templateDataSchemas['github_workflow_run'],
 });
 
 const SysdigTemplateContentSchema = z.object({

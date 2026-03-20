@@ -325,7 +325,7 @@ describe('messages endpoint', () => {
         },
       },
       {
-        template: 'github-pull_request',
+        template: 'github_pull_request',
         data: {
           event: 'opened',
           title: 'PR #123',
@@ -335,7 +335,7 @@ describe('messages endpoint', () => {
         },
       },
       {
-        template: 'github-workflow',
+        template: 'github_workflow_run',
         data: {
           event: 'completed',
           conclusion: 'failure',

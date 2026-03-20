@@ -9,8 +9,8 @@ import { UptimeTemplateDataSchema, renderUptimeTemplate } from './uptime';
 
 export const templateDataSchemas = {
   generic: GenericTemplateDataSchema,
-  'github-pull_request': GitHubPrTemplateDataSchema,
-  'github-workflow': GitHubWorkflowTemplateDataSchema,
+  github_pull_request: GitHubPrTemplateDataSchema,
+  github_workflow_run: GitHubWorkflowTemplateDataSchema,
   sysdig: SysdigTemplateDataSchema,
   uptime: UptimeTemplateDataSchema,
   db_backup: DbBackupTemplateDataSchema,
@@ -19,8 +19,8 @@ export const templateDataSchemas = {
 
 const templateRenderers: { [K in TemplateName]: (data: TemplateDataByName[K]) => AdaptiveCard } = {
   generic: renderGenericTemplate,
-  'github-pull_request': renderGitHubPrTemplate,
-  'github-workflow': renderGitHubWorkflowTemplate,
+  github_pull_request: renderGitHubPrTemplate,
+  github_workflow_run: renderGitHubWorkflowTemplate,
   sysdig: renderSysdigTemplate,
   uptime: renderUptimeTemplate,
   db_backup: renderDbBackupTemplate,
