@@ -10,17 +10,17 @@ function getContentItems(card: { body: Array<Record<string, unknown>> }): Array<
 
 describe('renderSysdigTemplate', () => {
   it('maps each severity to the correct alert color', () => {
-    const expectedColors: Record<string, string> = {
-      critical: 'Attention',
-      high: 'Warning',
-      medium: 'Warning',
-      low: 'Accent',
-      info: 'Default',
-    };
+    const expectedColors: Array<[number, string]> = [
+      [0, 'Attention'],  // critical
+      [1, 'Warning'],    // high
+      [2, 'Warning'],    // medium
+      [4, 'Accent'],     // low
+      [6, 'Default'],    // info
+    ];
 
-    for (const [severity, expectedColor] of Object.entries(expectedColors)) {
+    for (const [severity, expectedColor] of expectedColors) {
       const card = renderSysdigTemplate({
-        severity: severity as 'critical' | 'high' | 'medium' | 'low' | 'info',
+        severity,
         alertName: 'Test alert',
       });
 
@@ -34,7 +34,7 @@ describe('renderSysdigTemplate', () => {
   });
 
   it('renders action button for each severity level', () => {
-    for (const severity of ['critical', 'high', 'medium', 'low', 'info'] as const) {
+    for (const severity of [0, 1, 2, 4, 6]) {
       const card = renderSysdigTemplate({
         severity,
         alertName: 'CPU saturation',
@@ -54,7 +54,7 @@ describe('renderSysdigTemplate', () => {
 
   it('formats valid timestamp as relative time when possible', () => {
     const card = renderSysdigTemplate({
-      severity: 'high',
+      severity: 1,
       alertName: 'CPU saturation',
       timestamp: new Date(Date.now() - 2 * 60_000).toISOString(),
     });
@@ -77,7 +77,7 @@ describe('renderSysdigTemplate', () => {
       });
 
     const card = renderSysdigTemplate({
-      severity: 'high',
+      severity: 1,
       alertName: 'CPU saturation',
       timestamp,
     });

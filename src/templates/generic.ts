@@ -12,7 +12,7 @@ export const GenericTemplateDataSchema = z.object({
   url: z.string().url().optional(),
   urlLabel: z.string().min(1).optional(),
   source: z.string().min(1).optional(),
-}).strict();
+});
 
 const severityStyles: Record<NonNullable<GenericTemplateData['severity']>, 'attention' | 'warning' | 'accent' | 'good'> = {
   critical: 'attention',

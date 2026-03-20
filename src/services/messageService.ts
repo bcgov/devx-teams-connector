@@ -82,6 +82,14 @@ export class MessageService {
       };
     }
 
+    if (request.content.kind === 'html') {
+      return {
+        type: 'message',
+        text: request.content.text,
+        textFormat: 'xml',
+      };
+    }
+
     const card = renderTemplate(request.content.template, request.content.data);
 
     return {

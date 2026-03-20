@@ -3,7 +3,6 @@ import express, { type Express, Router } from 'express';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 import type { Logger } from 'pino';
-
 import rateLimit from 'express-rate-limit';
 
 import type { Config } from './config';
