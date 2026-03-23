@@ -19,21 +19,23 @@ interface Args {
   url?: string;
   urlLabel?: string;
   source?: string;
-  event?: 'opened' | 'merged' | 'closed' | 'sync_succeeded' | 'sync_failed' | 'out_of_sync';
+  event?: string;
+  conclusion?: string;
   repo?: string;
   author?: string;
+  branch?: string;
+  workflow?: string;
+  sha?: string;
   alertName?: string;
+  state?: string;
   scope?: string;
   description?: string;
   timestamp?: string;
-  status?: 'up' | 'degraded' | 'down' | 'success' | 'warning' | 'failed';
+  status?: string;
   service?: string;
-  responseTimeMs?: number;
   downSince?: string;
-  database?: string;
-  duration?: string;
-  size?: string;
-  container?: string;
+  projectName?: string;
+  projectFriendlyName?: string;
   application?: string;
   syncStatus?: 'Synced' | 'OutOfSync' | 'Unknown';
   healthStatus?: 'Healthy' | 'Degraded' | 'Progressing' | 'Missing' | 'Suspended' | 'Unknown';
@@ -51,28 +53,34 @@ Usage:
     npm run send:test -- --type text --message "Your message here"
 
   Preview mode (no delivery):
-    npm run send:test -- --preview --type template --template sysdig --severity high \\
+    npm run send:test -- --preview --type template --template sysdig --severity 1 \\
       --alertName "CPU saturation"
 
   Generic template:
     npm run send:test -- --type template --template generic --title "Maintenance" \\
       --body "DB maintenance in 30 minutes" --severity warning --url "https://example.com"
 
-  GitHub template:
-    npm run send:test -- --type template --template github --event opened --title "PR #123" \\
-      --repo "org/repo" --author "octocat" --url "https://github.com/org/repo/pull/123"
+  GitHub PR template:
+    npm run send:test -- --type template --template github_pull_request --event opened \\
+      --title "PR #123" --repo "org/repo" --author "octocat" \\
+      --url "https://github.com/org/repo/pull/123"
+
+  GitHub workflow template:
+    npm run send:test -- --type template --template github_workflow_run --event completed \\
+      --conclusion failure --workflow "CI/CD Pipeline" --repo "org/repo" --branch main \\
+      --author "octocat" --url "https://github.com/org/repo/actions/runs/123"
 
   Sysdig template:
-    npm run send:test -- --type template --template sysdig --severity high \\
+    npm run send:test -- --type template --template sysdig --severity 1 \\
       --alertName "CPU saturation" --scope "prod-cluster"
 
   Uptime template:
-    npm run send:test -- --type template --template uptime --status degraded \\
-      --service "payments-api" --responseTimeMs 620
+    npm run send:test -- --type template --template uptime --status down \\
+      --service "payments-api" --downSince "2026-02-22T11:40:00Z"
 
   DB backup template:
-    npm run send:test -- --type template --template db_backup --status success \\
-      --database "users" --duration "2m 03s" --size "1.2 GB" --container "backup-job-1"
+    npm run send:test -- --type template --template db_backup --status info \\
+      --projectName "abc123" --projectFriendlyName "My Project"
 
   Argo CD template:
     npm run send:test -- --type template --template argocd --event sync_failed \\
@@ -82,7 +90,7 @@ Usage:
 Options:
   --type <text|template>                  Message type (required)
   --preview                               Use /messages/preview endpoint (no Bot Framework delivery)
-  --template <generic|github|sysdig|uptime|db_backup|argocd>
+  --template <generic|github_pull_request|github_workflow_run|sysdig|uptime|db_backup|argocd>
                                           Template name (for template type, default: generic)
 
   Text options:
@@ -96,30 +104,45 @@ Options:
   --urlLabel <string>                     Action button label
   --source <string>                       Source system
 
-  GitHub options:
-  --event <opened|merged|closed>
-  --repo <org/repo>
-  --author <string>
+  GitHub PR options:
+  --event <string>                        PR action (e.g. opened, closed)
+  --title <string>                        PR title
+  --repo <org/repo>                       Repository full name
+  --author <string>                       PR author
+  --url <url>                             PR URL
+  --body <string>                         PR body text
+
+  GitHub workflow options:
+  --event <string>                        Workflow action (e.g. completed)
+  --conclusion <string>                   Conclusion (success, failure, cancelled)
+  --workflow <string>                     Workflow name
+  --repo <org/repo>                       Repository full name
+  --branch <string>                       Branch name
+  --author <string>                       Triggering actor
+  --url <url>                             Workflow run URL
+  --sha <string>                          Short commit SHA
+  --message <string>                      Commit message
 
   Sysdig options:
-  --alertName <string>
-  --scope <string>
-  --description <string>
-  --timestamp <ISO8601>
-  --severity <critical|high|medium|low|info>
+  --alertName <string>                    Alert name
+  --severity <0-7>                        Numeric severity (0=critical, 1=high, 2-3=medium, 4-5=low, 6-7=info)
+  --state <active|ok>                     Alert state
+  --scope <string>                        Alert scope
+  --description <string>                  Alert description
+  --timestamp <ISO8601>                   Alert timestamp
+  --url <url>                             Sysdig alert URL
 
   Uptime options:
-  --status <up|degraded|down>
-  --service <string>
-  --responseTimeMs <number>
-  --downSince <ISO8601>
+  --status <up|down>                      Service status
+  --service <string>                      Service name
+  --downSince <ISO8601>                   Down since timestamp
+  --url <url>                             Status page URL
 
   DB backup options:
-  --status <success|warning|failed>
-  --database <string>
-  --duration <string>
-  --size <string>
-  --container <string>
+  --status <info|warn|error>              Backup status
+  --projectName <string>                  Project name
+  --projectFriendlyName <string>          Project friendly name
+  --message <string>                      Backup message
 
   Argo CD options:
   --event <sync_succeeded|sync_failed|out_of_sync>
@@ -192,7 +215,11 @@ function parseArgs(): Args {
         i++;
         break;
       case '--event':
-        args.event = next as Args['event'];
+        args.event = next;
+        i++;
+        break;
+      case '--conclusion':
+        args.conclusion = next;
         i++;
         break;
       case '--repo':
@@ -203,8 +230,24 @@ function parseArgs(): Args {
         args.author = next;
         i++;
         break;
+      case '--branch':
+        args.branch = next;
+        i++;
+        break;
+      case '--workflow':
+        args.workflow = next;
+        i++;
+        break;
+      case '--sha':
+        args.sha = next;
+        i++;
+        break;
       case '--alertName':
         args.alertName = next;
+        i++;
+        break;
+      case '--state':
+        args.state = next;
         i++;
         break;
       case '--scope':
@@ -220,35 +263,23 @@ function parseArgs(): Args {
         i++;
         break;
       case '--status':
-        args.status = next as Args['status'];
+        args.status = next;
         i++;
         break;
       case '--service':
         args.service = next;
         i++;
         break;
-      case '--responseTimeMs':
-        args.responseTimeMs = next ? Number(next) : undefined;
-        i++;
-        break;
       case '--downSince':
         args.downSince = next;
         i++;
         break;
-      case '--database':
-        args.database = next;
+      case '--projectName':
+        args.projectName = next;
         i++;
         break;
-      case '--duration':
-        args.duration = next;
-        i++;
-        break;
-      case '--size':
-        args.size = next;
-        i++;
-        break;
-      case '--container':
-        args.container = next;
+      case '--projectFriendlyName':
+        args.projectFriendlyName = next;
         i++;
         break;
       case '--application':
@@ -336,12 +367,12 @@ function buildTemplateContent(args: Args): { kind: 'template'; template: Templat
       };
     }
 
-    case 'github':
+    case 'github_pull_request':
       return {
         kind: 'template',
-        template: 'github',
+        template: 'github_pull_request',
         data: {
-          event: ensureValueInSet(args.event, '--event', ['opened', 'merged', 'closed']),
+          event: requireArg(args.event, '--event'),
           title: requireArg(args.title, '--title'),
           repo: requireArg(args.repo, '--repo'),
           author: requireArg(args.author, '--author'),
@@ -350,30 +381,52 @@ function buildTemplateContent(args: Args): { kind: 'template'; template: Templat
         },
       };
 
-    case 'sysdig':
+    case 'github_workflow_run':
+      return {
+        kind: 'template',
+        template: 'github_workflow_run',
+        data: {
+          event: requireArg(args.event, '--event'),
+          ...(args.conclusion && { conclusion: args.conclusion }),
+          workflow: requireArg(args.workflow, '--workflow'),
+          repo: requireArg(args.repo, '--repo'),
+          branch: requireArg(args.branch, '--branch'),
+          author: requireArg(args.author, '--author'),
+          url: requireArg(args.url, '--url'),
+          ...(args.sha && { sha: args.sha }),
+          ...(args.message && { message: args.message }),
+        },
+      };
+
+    case 'sysdig': {
+      const severityNum = Number(requireArg(args.severity, '--severity'));
+      if (!Number.isInteger(severityNum) || severityNum < 0 || severityNum > 7) {
+        console.error('Error: --severity must be an integer from 0 to 7');
+        process.exit(1);
+      }
+
       return {
         kind: 'template',
         template: 'sysdig',
         data: {
-          severity: ensureValueInSet(args.severity, '--severity', ['critical', 'high', 'medium', 'low', 'info']),
+          severity: severityNum,
           alertName: requireArg(args.alertName, '--alertName'),
+          ...(args.state && { state: ensureValueInSet(args.state, '--state', ['active', 'ok']) }),
           ...(args.scope && { scope: args.scope }),
           ...(args.description && { description: args.description }),
           ...(args.timestamp && { timestamp: args.timestamp }),
           ...(args.url && { url: args.url }),
         },
       };
+    }
 
     case 'uptime':
       return {
         kind: 'template',
         template: 'uptime',
         data: {
-          status: ensureValueInSet(args.status, '--status', ['up', 'degraded', 'down']),
+          status: ensureValueInSet(args.status, '--status', ['up', 'down']),
           service: requireArg(args.service, '--service'),
-          ...(typeof args.responseTimeMs === 'number' && Number.isFinite(args.responseTimeMs)
-            ? { responseTimeMs: args.responseTimeMs }
-            : {}),
           ...(args.downSince && { downSince: args.downSince }),
           ...(args.url && { url: args.url }),
         },
@@ -384,12 +437,10 @@ function buildTemplateContent(args: Args): { kind: 'template'; template: Templat
         kind: 'template',
         template: 'db_backup',
         data: {
-          status: ensureValueInSet(args.status, '--status', ['success', 'warning', 'failed']),
-          database: requireArg(args.database, '--database'),
-          ...(args.duration && { duration: args.duration }),
-          ...(args.size && { size: args.size }),
+          status: ensureValueInSet(args.status, '--status', ['info', 'warn', 'error']),
+          projectName: requireArg(args.projectName, '--projectName'),
+          projectFriendlyName: requireArg(args.projectFriendlyName, '--projectFriendlyName'),
           ...(args.message && { message: args.message }),
-          ...(args.container && { container: args.container }),
         },
       };
 

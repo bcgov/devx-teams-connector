@@ -30,6 +30,52 @@ describe('renderGitHubPrTemplate', () => {
     }
   });
 
+  it('renders correct badge text and color for known events', () => {
+    const cases: Array<[string, string, string]> = [
+      ['opened', 'Pull Request Opened', 'Good'],
+      ['closed', 'Pull Request Closed', 'Attention'],
+      ['reopened', 'Pull Request Reopened', 'Good'],
+      ['synchronize', 'Pull Request Updated', 'Default'],
+      ['ready_for_review', 'Pull Request Ready for Review', 'Default'],
+      ['converted_to_draft', 'Converted to Draft', 'Default'],
+      ['review_requested', 'Review Requested', 'Default'],
+    ];
+
+    for (const [event, expectedBadge, expectedColor] of cases) {
+      const card = renderGitHubPrTemplate({
+        event,
+        title: 'PR #1',
+        repo: 'org/repo',
+        author: 'octocat',
+        url: 'https://github.com/org/repo/pull/1',
+      });
+
+      const items = getContentItems(card);
+      const badgeBlock = items.find(
+        (item) => item.type === 'TextBlock' && item.weight === 'Bolder' && item.size === 'Small',
+      );
+      expect(badgeBlock?.text).toBe(expectedBadge);
+      expect(badgeBlock?.color).toBe(expectedColor);
+    }
+  });
+
+  it('formats unknown underscore events as title case', () => {
+    const card = renderGitHubPrTemplate({
+      event: 'auto_merge_enabled',
+      title: 'PR #1',
+      repo: 'org/repo',
+      author: 'octocat',
+      url: 'https://github.com/org/repo/pull/1',
+    });
+
+    const items = getContentItems(card);
+    const badgeBlock = items.find(
+      (item) => item.type === 'TextBlock' && item.weight === 'Bolder' && item.size === 'Small',
+    );
+    expect(badgeBlock?.text).toBe('Pull Request Auto Merge Enabled');
+    expect(badgeBlock?.color).toBe('Default');
+  });
+
   it('truncates body text to 300 chars with deterministic ellipsis', () => {
     const card = renderGitHubPrTemplate({
       event: 'opened',
@@ -58,15 +104,17 @@ describe('renderGitHubPrTemplate', () => {
 });
 
 describe('renderGitHubWorkflowTemplate', () => {
-  it('renders correct badge color for each conclusion', () => {
-    const expectedColors: Array<[string, string]> = [
-      ['success', 'Good'],
-      ['failure', 'Attention'],
-      ['cancelled', 'Warning'],
-      ['timed_out', 'Default'],
+  it('renders correct badge and color for each conclusion', () => {
+    const cases: Array<[string, string, string]> = [
+      ['success', 'Workflow Succeeded', 'Good'],
+      ['failure', 'Workflow Failed', 'Attention'],
+      ['cancelled', 'Workflow Cancelled', 'Warning'],
+      ['timed_out', 'Workflow Failed', 'Attention'],
+      ['action_required', 'Workflow Action Required', 'Warning'],
+      ['skipped', 'Workflow Run', 'Default'],
     ];
 
-    for (const [conclusion, expectedColor] of expectedColors) {
+    for (const [conclusion, expectedBadge, expectedColor] of cases) {
       const card = renderGitHubWorkflowTemplate({
         event: 'completed',
         conclusion,
@@ -81,7 +129,33 @@ describe('renderGitHubWorkflowTemplate', () => {
       const badgeBlock = items.find(
         (item) => item.type === 'TextBlock' && item.weight === 'Bolder' && item.size === 'Small',
       );
+      expect(badgeBlock?.text).toBe(expectedBadge);
       expect(badgeBlock?.color).toBe(expectedColor);
+    }
+  });
+
+  it('renders event-based badge when no conclusion is present', () => {
+    const cases: Array<[string, string]> = [
+      ['in_progress', 'Workflow In Progress'],
+      ['requested', 'Workflow Queued'],
+    ];
+
+    for (const [event, expectedBadge] of cases) {
+      const card = renderGitHubWorkflowTemplate({
+        event,
+        workflow: 'CI/CD Pipeline',
+        repo: 'org/repo',
+        branch: 'main',
+        author: 'octocat',
+        url: 'https://github.com/org/repo/actions/runs/123',
+      });
+
+      const items = getContentItems(card);
+      const badgeBlock = items.find(
+        (item) => item.type === 'TextBlock' && item.weight === 'Bolder' && item.size === 'Small',
+      );
+      expect(badgeBlock?.text).toBe(expectedBadge);
+      expect(badgeBlock?.color).toBe('Default');
     }
   });
 

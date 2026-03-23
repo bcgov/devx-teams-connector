@@ -24,15 +24,25 @@ export const GitHubWorkflowTemplateDataSchema = z.object({
   message: z.string().optional(), // workflow_run.head_commit.message
 });
 
-const eventBadges: Record<GitHubPrTemplateData['event'], string> = {
+const eventBadges: Record<string, string> = {
   opened: 'Pull Request Opened',
   closed: 'Pull Request Closed',
+  reopened: 'Pull Request Reopened',
+  synchronize: 'Pull Request Updated',
+  ready_for_review: 'Pull Request Ready for Review',
+  converted_to_draft: 'Converted to Draft',
+  review_requested: 'Review Requested',
 };
 
-const eventTextColors: Record<GitHubPrTemplateData['event'], 'Good' | 'Attention'> = {
+const eventTextColors: Record<string, 'Good' | 'Attention' | 'Default'> = {
   opened: 'Good',
   closed: 'Attention',
+  reopened: 'Good',
 };
+
+function formatEventBadge(event: string): string {
+  return `Pull Request ${event.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}`;
+}
 
 export function renderGitHubPrTemplate(data: GitHubPrTemplateData): AdaptiveCard {
   const contentItems: Array<Record<string, unknown>> = [
@@ -45,9 +55,9 @@ export function renderGitHubPrTemplate(data: GitHubPrTemplateData): AdaptiveCard
     },
     {
       type: 'TextBlock',
-      text: eventBadges[data.event],
+      text: eventBadges[data.event] ?? formatEventBadge(data.event),
       size: 'Small',
-      color: eventTextColors[data.event],
+      color: eventTextColors[data.event] ?? 'Default',
       weight: 'Bolder',
       spacing: 'None',
     },
@@ -95,31 +105,43 @@ export function renderGitHubPrTemplate(data: GitHubPrTemplateData): AdaptiveCard
   return createBaseCard(body);
 }
 
-type ConclusionLabel = 'success' | 'failure' | 'cancelled' | 'other';
+type WorkflowLabel = 'success' | 'failure' | 'cancelled' | 'action_required' | 'in_progress' | 'queued' | 'other';
 
-function toConclusionLabel(conclusion: string | undefined): ConclusionLabel {
-  if (conclusion === 'success') return 'success';
-  if (conclusion === 'failure') return 'failure';
-  if (conclusion === 'cancelled') return 'cancelled';
+function toWorkflowLabel(conclusion: string | undefined, event: string): WorkflowLabel {
+  if (conclusion) {
+    if (conclusion === 'success') return 'success';
+    if (conclusion === 'failure' || conclusion === 'timed_out') return 'failure';
+    if (conclusion === 'cancelled') return 'cancelled';
+    if (conclusion === 'action_required') return 'action_required';
+    return 'other';
+  }
+  if (event === 'in_progress') return 'in_progress';
+  if (event === 'requested') return 'queued';
   return 'other';
 }
 
-const conclusionBadges: Record<ConclusionLabel, string> = {
+const workflowBadges: Record<WorkflowLabel, string> = {
   success: 'Workflow Succeeded',
   failure: 'Workflow Failed',
   cancelled: 'Workflow Cancelled',
+  action_required: 'Workflow Action Required',
+  in_progress: 'Workflow In Progress',
+  queued: 'Workflow Queued',
   other: 'Workflow Run',
 };
 
-const conclusionTextColors: Record<ConclusionLabel, 'Good' | 'Attention' | 'Warning' | 'Default'> = {
+const workflowTextColors: Record<WorkflowLabel, 'Good' | 'Attention' | 'Warning' | 'Default'> = {
   success: 'Good',
   failure: 'Attention',
   cancelled: 'Warning',
+  action_required: 'Warning',
+  in_progress: 'Default',
+  queued: 'Default',
   other: 'Default',
 };
 
 export function renderGitHubWorkflowTemplate(data: GitHubWorkflowTemplateData): AdaptiveCard {
-  const label = toConclusionLabel(data.conclusion);
+  const label = toWorkflowLabel(data.conclusion, data.event);
   const contentItems: Array<Record<string, unknown>> = [
     {
       type: 'TextBlock',
@@ -130,9 +152,9 @@ export function renderGitHubWorkflowTemplate(data: GitHubWorkflowTemplateData): 
     },
     {
       type: 'TextBlock',
-      text: conclusionBadges[label],
+      text: workflowBadges[label],
       size: 'Small',
-      color: conclusionTextColors[label],
+      color: workflowTextColors[label],
       weight: 'Bolder',
       spacing: 'None',
     },

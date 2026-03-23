@@ -19,7 +19,7 @@ export const IsoTimestampSchema = z.union([
   z.string().datetime(),
 ]);
 
-function toCategoryTextColor(style: AdaptiveContainerStyle): AdaptiveTextColor {
+export function toTextColor(style: AdaptiveContainerStyle): AdaptiveTextColor {
   switch (style) {
     case 'good':
       return 'Good';
@@ -32,10 +32,6 @@ function toCategoryTextColor(style: AdaptiveContainerStyle): AdaptiveTextColor {
     default:
       return 'Default';
   }
-}
-
-export function toTextColor(style: AdaptiveContainerStyle): AdaptiveTextColor {
-  return toCategoryTextColor(style);
 }
 
 export function createCardFrame(items: Array<Record<string, unknown>>): Record<string, unknown> {

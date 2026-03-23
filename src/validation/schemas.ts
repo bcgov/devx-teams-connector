@@ -31,7 +31,7 @@ const GitHubPrTemplateContentSchema = z.object({
   data: templateDataSchemas['github_pull_request'],
 });
 
-const GitHubWorkTemplateContentSchema = z.object({
+const GitHubWorkflowTemplateContentSchema = z.object({
   kind: z.literal('template'),
   template: z.literal('github_workflow_run'),
   data: templateDataSchemas['github_workflow_run'],
@@ -64,7 +64,7 @@ const ArgoCdTemplateContentSchema = z.object({
 const TemplateContentSchema = z.discriminatedUnion('template', [
   GenericTemplateContentSchema,
   GitHubPrTemplateContentSchema,
-  GitHubWorkTemplateContentSchema,
+  GitHubWorkflowTemplateContentSchema,
   SysdigTemplateContentSchema,
   UptimeTemplateContentSchema,
   DbBackupTemplateContentSchema,
