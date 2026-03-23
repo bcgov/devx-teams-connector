@@ -118,7 +118,7 @@ describe('messages endpoint', () => {
           kind: 'template',
           template: 'sysdig',
           data: {
-            severity: 'high',
+            severity: 1,
             alertName: 'CPU saturation',
           },
         },
@@ -261,7 +261,7 @@ describe('messages endpoint', () => {
     expect(body.retryable).toBe(true);
   });
 
-  it('returns 400 for invalid template data instead of 500', async () => {
+  it('accepts extra fields in template data without returning 400', async () => {
     const app = createTestApp();
 
     const response = await invokeApp(app, {
@@ -274,7 +274,7 @@ describe('messages endpoint', () => {
           kind: 'template',
           template: 'sysdig',
           data: {
-            severity: 'high',
+            severity: 1,
             alertName: 'CPU saturation',
             unexpected: 'extra',
           },
@@ -282,12 +282,10 @@ describe('messages endpoint', () => {
       },
     });
 
-    expect(response.status).toBe(400);
-    const body = response.body as Record<string, unknown>;
-    expect(body.code).toBe('VALIDATION_ERROR');
+    expect(response.status).toBe(201);
   });
 
-  it('returns 400 for invalid preview template data', async () => {
+  it('accepts extra fields in preview template data without returning 400', async () => {
     const app = createTestApp();
 
     const response = await invokeApp(app, {
@@ -300,7 +298,7 @@ describe('messages endpoint', () => {
           kind: 'template',
           template: 'sysdig',
           data: {
-            severity: 'high',
+            severity: 1,
             alertName: 'CPU saturation',
             unexpected: 'extra',
           },
@@ -308,9 +306,7 @@ describe('messages endpoint', () => {
       },
     });
 
-    expect(response.status).toBe(400);
-    const body = response.body as Record<string, unknown>;
-    expect(body.code).toBe('VALIDATION_ERROR');
+    expect(response.status).toBe(200);
   });
 
   it('sends each supported template as attachment-only activity', async () => {
@@ -329,7 +325,7 @@ describe('messages endpoint', () => {
         },
       },
       {
-        template: 'github',
+        template: 'github_pull_request',
         data: {
           event: 'opened',
           title: 'PR #123',
@@ -339,9 +335,21 @@ describe('messages endpoint', () => {
         },
       },
       {
+        template: 'github_workflow_run',
+        data: {
+          event: 'completed',
+          conclusion: 'failure',
+          workflow: 'CI/CD Pipeline',
+          repo: 'org/repo',
+          branch: 'main',
+          author: 'octocat',
+          url: 'https://github.com/org/repo/actions/runs/456',
+        },
+      },
+      {
         template: 'sysdig',
         data: {
-          severity: 'high',
+          severity: 1,
           alertName: 'CPU saturation',
           timestamp: '2026-02-22T12:00:00Z',
         },
@@ -349,19 +357,16 @@ describe('messages endpoint', () => {
       {
         template: 'uptime',
         data: {
-          status: 'degraded',
+          status: 'down',
           service: 'payments-api',
-          responseTimeMs: 640,
         },
       },
       {
         template: 'db_backup',
         data: {
-          status: 'success',
-          database: 'users',
-          duration: '2m 03s',
-          size: '1.2 GB',
-          container: 'backup-job-1',
+          status: 'info',
+          projectName: 'abc123',
+          projectFriendlyName: 'My Project',
         },
       },
       {

@@ -11,16 +11,14 @@ import {
 } from './shared';
 
 export const UptimeTemplateDataSchema = z.object({
-  status: z.enum(['up', 'degraded', 'down']),
-  service: z.string().min(1).max(200),
-  responseTimeMs: z.number().nonnegative().optional(),
-  downSince: IsoTimestampSchema.optional(),
-  url: z.string().url().optional(),
-}).strict();
+  status: z.enum(['up', 'down']), // data.alert.is_up
+  service: z.string().min(1), // data.service.display_name
+  downSince: IsoTimestampSchema.optional(), // data.alert.created_at
+  url: z.string().url().optional(), // data.links.alert_details
+});
 
 const statusBadges: Record<UptimeTemplateData['status'], string> = {
   up: '🟢 UP',
-  degraded: '🟡 DEGRADED',
   down: '🔴 DOWN',
 };
 
@@ -50,7 +48,7 @@ export function renderUptimeTemplate(data: UptimeTemplateData): AdaptiveCard {
               type: 'TextBlock',
               text: statusBadges[data.status],
               size: 'Small',
-              color: data.status === 'up' ? 'Good' : data.status === 'degraded' ? 'Warning' : 'Attention',
+              color: data.status === 'up' ? 'Good' : 'Attention',
               weight: 'Bolder',
               spacing: 'None',
             },
@@ -83,10 +81,6 @@ export function renderUptimeTemplate(data: UptimeTemplateData): AdaptiveCard {
 
   const factSet = createFactSet([
     { title: 'URL', value: toHostname(data.url) },
-    {
-      title: 'Response',
-      value: typeof data.responseTimeMs === 'number' ? `${data.responseTimeMs}ms` : data.status === 'down' ? '⏱ Timeout' : undefined,
-    },
     {
       title: 'Down since',
       value: data.downSince ? formatRelativeTimeOrIso(data.downSince) : undefined,

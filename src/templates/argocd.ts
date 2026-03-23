@@ -22,7 +22,7 @@ export const ArgoCdTemplateDataSchema = z.object({
   timestamp: IsoTimestampSchema.optional(),
   message: z.string().min(1).optional(),
   url: z.string().url().optional(),
-}).strict();
+});
 
 const eventStyles: Record<ArgoCdTemplateData['event'], 'good' | 'warning' | 'attention'> = {
   sync_succeeded: 'good',

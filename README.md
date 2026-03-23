@@ -12,7 +12,7 @@ Implemented:
 - Explicit `teamId + channelId` targeting
 - Content kinds:
   - `text`
-  - `template` with `template=generic|github|sysdig|uptime|db_backup|argocd`
+  - `template` with `template=generic|github_pull_request|github_workflow_run|sysdig|uptime|db_backup|argocd`
 
 Deferred:
 - Graph membership checks and cache
@@ -136,7 +136,7 @@ curl -X POST http://localhost:3000/api/v1/messages/preview \
       "kind": "template",
       "template": "sysdig",
       "data": {
-        "severity": "high",
+        "severity": 1,
         "alertName": "CPU saturation"
       }
     }
@@ -167,7 +167,7 @@ curl -X POST http://localhost:3000/api/v1/messages \
   }'
 ```
 
-### Send GitHub template message
+### Send GitHub PR template message
 
 ```bash
 curl -X POST http://localhost:3000/api/v1/messages \
@@ -180,7 +180,7 @@ curl -X POST http://localhost:3000/api/v1/messages \
     },
     "content": {
       "kind": "template",
-      "template": "github",
+      "template": "github_pull_request",
       "data": {
         "event": "opened",
         "title": "PR #123: Improve alert rendering",
@@ -188,6 +188,34 @@ curl -X POST http://localhost:3000/api/v1/messages \
         "author": "octocat",
         "url": "https://github.com/bcgov/devx-teams-connector/pull/123",
         "body": "Adds support for additional adaptive card templates."
+      }
+    }
+  }'
+```
+
+### Send GitHub workflow template message
+
+```bash
+curl -X POST http://localhost:3000/api/v1/messages \
+  -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target": {
+      "teamId": "00000000-0000-0000-0000-000000000000",
+      "channelId": "19:abc123@thread.tacv2"
+    },
+    "content": {
+      "kind": "template",
+      "template": "github_workflow_run",
+      "data": {
+        "event": "completed",
+        "conclusion": "failure",
+        "workflow": "CI/CD Pipeline",
+        "repo": "bcgov/devx-teams-connector",
+        "branch": "main",
+        "author": "octocat",
+        "url": "https://github.com/bcgov/devx-teams-connector/actions/runs/123",
+        "sha": "a1b2c3d"
       }
     }
   }'
@@ -208,7 +236,7 @@ curl -X POST http://localhost:3000/api/v1/messages \
       "kind": "template",
       "template": "sysdig",
       "data": {
-        "severity": "high",
+        "severity": 1,
         "alertName": "CPU saturation",
         "scope": "prod-cluster",
         "description": "Sustained CPU > 90% for 5 minutes",
@@ -234,9 +262,8 @@ curl -X POST http://localhost:3000/api/v1/messages \
       "kind": "template",
       "template": "uptime",
       "data": {
-        "status": "degraded",
+        "status": "down",
         "service": "payments-api",
-        "responseTimeMs": 620,
         "downSince": "2026-02-22T11:40:00Z",
         "url": "https://status.example.com/payments-api"
       }
@@ -259,12 +286,10 @@ curl -X POST http://localhost:3000/api/v1/messages \
       "kind": "template",
       "template": "db_backup",
       "data": {
-        "status": "success",
-        "database": "users",
-        "duration": "2m 03s",
-        "size": "1.2 GB",
-        "message": "Backup completed",
-        "container": "backup-job-1"
+        "status": "info",
+        "projectName": "abc123",
+        "projectFriendlyName": "My Project",
+        "message": "Backup completed"
       }
     }
   }'
@@ -326,7 +351,7 @@ npm run send:test -- --type text --message "Hello from script"
 Preview mode (does not post to Bot Framework):
 
 ```bash
-npm run send:test -- --preview --type template --template sysdig --severity high --alertName "CPU saturation"
+npm run send:test -- --preview --type template --template sysdig --severity 1 --alertName "CPU saturation"
 ```
 
 Send generic template:
@@ -335,28 +360,34 @@ Send generic template:
 npm run send:test -- --type template --template generic --title "Maintenance Window" --body "DB maintenance in 30 minutes." --severity warning
 ```
 
-Send GitHub template:
+Send GitHub PR template:
 
 ```bash
-npm run send:test -- --type template --template github --event opened --title "PR #123" --repo "bcgov/devx-teams-connector" --author "octocat" --url "https://github.com/bcgov/devx-teams-connector/pull/123"
+npm run send:test -- --type template --template github_pull_request --event opened --title "PR #123" --repo "bcgov/devx-teams-connector" --author "octocat" --url "https://github.com/bcgov/devx-teams-connector/pull/123"
+```
+
+Send GitHub workflow template:
+
+```bash
+npm run send:test -- --type template --template github_workflow_run --event completed --conclusion failure --workflow "CI/CD Pipeline" --repo "bcgov/devx-teams-connector" --branch main --author "octocat" --url "https://github.com/bcgov/devx-teams-connector/actions/runs/123"
 ```
 
 Send Sysdig template:
 
 ```bash
-npm run send:test -- --type template --template sysdig --severity high --alertName "CPU saturation" --scope "prod-cluster" --timestamp "2026-02-22T12:00:00Z"
+npm run send:test -- --type template --template sysdig --severity 1 --alertName "CPU saturation" --scope "prod-cluster" --timestamp "2026-02-22T12:00:00Z"
 ```
 
 Send uptime template:
 
 ```bash
-npm run send:test -- --type template --template uptime --status degraded --service "payments-api" --responseTimeMs 620 --downSince "2026-02-22T11:40:00Z"
+npm run send:test -- --type template --template uptime --status down --service "payments-api" --downSince "2026-02-22T11:40:00Z"
 ```
 
 Send DB backup template:
 
 ```bash
-npm run send:test -- --type template --template db_backup --status success --database "users" --duration "2m 03s" --size "1.2 GB" --container "backup-job-1"
+npm run send:test -- --type template --template db_backup --status info --projectName "abc123" --projectFriendlyName "My Project"
 ```
 
 Send Argo CD template:
