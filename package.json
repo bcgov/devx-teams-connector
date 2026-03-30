@@ -1,8 +1,8 @@
 {
-  "name": "teams-connector-poc",
+  "name": "devx-teams-connector",
   "version": "0.6.0",
   "private": true,
-  "description": "Minimal Teams Connector PoC for posting to Teams via Bot Framework",
+  "description": "Teams Connector for posting to Teams via Bot Framework",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",

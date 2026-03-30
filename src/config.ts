@@ -54,7 +54,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const portRaw = env.PORT ?? '3000';
   const port = Number(portRaw);
 
-  if (!Number.isInteger(port) || port <= 0) {
+  if (!Number.isInteger(port) || port <= 0 || port > 65535) {
     throw new Error(`Invalid PORT value: ${portRaw}`);
   }
 

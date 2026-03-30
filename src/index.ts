@@ -21,7 +21,7 @@ async function main() {
   });
 
   const server = app.listen(config.port, () => {
-    logger.info({ port: config.port }, 'Teams connector PoC listening');
+    logger.info({ port: config.port }, 'Teams connector listening');
   });
 
   server.keepAliveTimeout = 65_000;
