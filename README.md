@@ -1,4 +1,4 @@
-# Teams Connector PoC
+# Teams Connector
 
 Minimal TypeScript/Express proof-of-concept for posting notifications to Microsoft Teams via a Teams app bot using Bot Framework.
 
@@ -72,13 +72,13 @@ npm start
 Build image:
 
 ```bash
-docker build -t teams-connector-poc .
+docker build -t teams-connector .
 ```
 
 Run container:
 
 ```bash
-docker run --rm -p 3000:3000 --env-file .env teams-connector-poc
+docker run --rm -p 3000:3000 --env-file .env teams-connector
 ```
 
 ### Docker Compose

@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: teams-connector-poc
+    container_name: teams-connector
     ports:
       - "3000:3000"
     env_file:
