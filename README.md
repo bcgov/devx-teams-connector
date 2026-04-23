@@ -1,6 +1,6 @@
-# Teams Connector
+# Relay API / Teams Connector
 
-Minimal TypeScript/Express proof-of-concept for posting notifications to Microsoft Teams via a Teams app bot using Bot Framework.
+Minimal TypeScript/Express backend for posting notifications to Microsoft Teams via a Teams app bot using Bot Framework.
 
 ## Scope
 
@@ -13,10 +13,6 @@ Implemented:
 - Content kinds:
   - `text`
   - `template` with `template=generic|github_pull_request|github_workflow_run|sysdig|uptime|db_backup|argocd`
-
-Deferred:
-- Graph membership checks and cache
-- Additional content kinds/templates
 
 ## Prerequisites
 
