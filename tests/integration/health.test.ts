@@ -15,10 +15,9 @@ describe('health endpoint', () => {
     botServiceUrl: 'https://smba.trafficmanager.net/teams',
     tokenTenant: 'botframework.com',
     logLevel: 'silent',
-    version: '1.0.0',
   };
 
-  it('returns healthy status with version and uptime', async () => {
+  it('returns ok status', async () => {
     const adapter: DeliveryAdapter = {
       send: vi.fn().mockResolvedValue({ success: true }),
     };
@@ -38,8 +37,6 @@ describe('health endpoint', () => {
     const body = response.body as Record<string, unknown>;
 
     expect(response.status).toBe(200);
-    expect(body.status).toBe('healthy');
-    expect(body.version).toBe('1.0.0');
-    expect(typeof body.uptime).toBe('number');
+    expect(body.status).toBe('ok');
   });
 });

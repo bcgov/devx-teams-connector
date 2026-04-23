@@ -101,7 +101,7 @@ jobs:
       - name: Smoke test live container
         run: |
           curl --fail --silent http://localhost:3000/health > /tmp/health.json
-          node -e "const fs=require('node:fs');const j=JSON.parse(fs.readFileSync('/tmp/health.json','utf8'));if(!['healthy','degraded'].includes(j.status)){throw new Error('Unexpected status: '+j.status)}"
+          node -e "const fs=require('node:fs');const j=JSON.parse(fs.readFileSync('/tmp/health.json','utf8'));if(j.status!=='ok'){throw new Error('Unexpected status: '+j.status)}"
 
       - name: Run test suite
         run: npm test

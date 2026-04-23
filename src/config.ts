@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import dotenv from 'dotenv';
 
 export interface Config {
@@ -10,7 +8,6 @@ export interface Config {
   botServiceUrl: string;
   tokenTenant: string;
   logLevel: string;
-  version: string;
 }
 
 function normalizeEnvValue(value: string): string {
@@ -40,15 +37,6 @@ function getRequiredEnv(env: NodeJS.ProcessEnv, key: string): string {
   return normalized;
 }
 
-function readPackageVersion(): string {
-  try {
-    const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8')) as { version?: string };
-    return pkg.version ?? '0.0.0';
-  } catch {
-    return '0.0.0';
-  }
-}
-
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (env === process.env) dotenv.config();
   const portRaw = env.PORT ?? '3000';
@@ -73,6 +61,5 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     botServiceUrl: normalizeEnvValue(env.BOT_SERVICE_URL ?? 'https://smba.trafficmanager.net/teams'),
     tokenTenant: normalizeEnvValue(env.BOT_TOKEN_TENANT ?? env.TENANT_ID ?? 'botframework.com'),
     logLevel: normalizeEnvValue(env.LOG_LEVEL ?? 'info'),
-    version: env.npm_package_version ?? readPackageVersion(),
   };
 }
