@@ -62,7 +62,7 @@ jobs:
           docker run -d \
             --name teams-connector-ci \
             --publish 3000:3000 \
-            --health-cmd='node -e "fetch(\"http://localhost:3000/api/v1/health\").then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"' \
+            --health-cmd='node -e "fetch(\"http://localhost:3000/health\").then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"' \
             --health-interval=10s \
             --health-timeout=5s \
             --health-retries=18 \
@@ -100,7 +100,7 @@ jobs:
 
       - name: Smoke test live container
         run: |
-          curl --fail --silent http://localhost:3000/api/v1/health > /tmp/health.json
+          curl --fail --silent http://localhost:3000/health > /tmp/health.json
           node -e "const fs=require('node:fs');const j=JSON.parse(fs.readFileSync('/tmp/health.json','utf8'));if(!['healthy','degraded'].includes(j.status)){throw new Error('Unexpected status: '+j.status)}"
 
       - name: Run test suite

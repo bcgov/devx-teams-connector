@@ -7,7 +7,7 @@ Minimal TypeScript/Express proof-of-concept for posting notifications to Microso
 Implemented:
 - `POST /api/v1/messages`
 - `POST /api/v1/messages/preview` (validate + render payload only, no Bot Framework delivery)
-- `GET /api/v1/health`
+- `GET /health`
 - API key auth (Bearer token)
 - Explicit `teamId + channelId` targeting
 - Content kinds:
@@ -100,7 +100,7 @@ npm run compose:down
 ### Health
 
 ```bash
-curl http://localhost:3000/api/v1/health
+curl http://localhost:3000/health
 ```
 
 ### Send text message

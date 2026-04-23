@@ -32,7 +32,7 @@ describe('health endpoint', () => {
 
     const response = await invokeApp(app, {
       method: 'GET',
-      path: '/api/v1/health',
+      path: '/health',
     });
 
     const body = response.body as Record<string, unknown>;
