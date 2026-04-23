@@ -25,7 +25,6 @@ describe('messages endpoint', () => {
     botServiceUrl: 'https://smba.trafficmanager.net/teams',
     tokenTenant: 'botframework.com',
     logLevel: 'silent',
-    version: '1.0.0',
   };
 
   let adapter: DeliveryAdapter;

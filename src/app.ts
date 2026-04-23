@@ -24,7 +24,6 @@ interface AppOptions {
 export function createApp(options: AppOptions): Express {
   const app = express();
   const apiRouter = Router();
-  const startedAt = Date.now();
 
   app.use(helmet());
   app.use(express.json({ limit: '256kb' }));
@@ -40,10 +39,7 @@ export function createApp(options: AppOptions): Express {
 
   const messageService = new MessageService(options.adapter, options.logger);
 
-  app.use(createHealthRouter({
-    version: options.config.version,
-    startedAt,
-  }));
+  app.use(createHealthRouter());
 
   apiRouter.use(rateLimit({
     windowMs: 60_000,
