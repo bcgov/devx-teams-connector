@@ -40,7 +40,7 @@ export function createApp(options: AppOptions): Express {
 
   const messageService = new MessageService(options.adapter, options.logger);
 
-  apiRouter.use(createHealthRouter({
+  app.use(createHealthRouter({
     version: options.config.version,
     startedAt,
   }));
