@@ -77,10 +77,16 @@ const MetadataSchema = z.record(z.string().min(1).max(64), z.string().max(256))
   .refine((obj) => Object.keys(obj).length <= 20, { message: 'metadata: too many keys (max 20)' })
   .optional();
 
+const MentionTargetSchema = z.object({
+  id: z.string().min(1).max(512),
+  name: z.string().min(1).max(256),
+});
+
 export const SendMessageRequestSchema: z.ZodType<SendMessageRequest> = z.object({
   target: TargetSchema,
   content: ContentSchema,
   metadata: MetadataSchema,
+  mentions: z.array(MentionTargetSchema).max(10).optional(),
 });
 
 export type SendMessageRequestInput = z.infer<typeof SendMessageRequestSchema>;

@@ -102,6 +102,96 @@ describe('messages endpoint', () => {
     });
   });
 
+  it('returns preview text activity with prepended mention entities', async () => {
+    const sendMock = vi.fn().mockResolvedValue({ success: true, teamsMessageId: 'abc' });
+    adapter.send = sendMock;
+    const app = createTestApp();
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages/preview',
+      headers: authHeaders,
+      body: {
+        target,
+        mentions: [
+          {
+            id: '87d349ed-44d7-43e1-9a83-5f2406dee5bd',
+            name: 'Adele Vance',
+          },
+        ],
+        content: {
+          kind: 'text',
+          text: 'please <review>',
+        },
+      },
+    });
+
+    expect(response.status).toBe(200);
+    expect(sendMock).not.toHaveBeenCalled();
+
+    const body = response.body as Record<string, unknown>;
+    const payload = body.payload as Record<string, unknown>;
+    const activity = payload.activity as Record<string, unknown>;
+
+    expect(activity).toEqual({
+      type: 'message',
+      text: '<at>Adele Vance</at>\n\nplease &lt;review&gt;',
+      textFormat: 'xml',
+      entities: [
+        {
+          type: 'mention',
+          text: '<at>Adele Vance</at>',
+          mentioned: {
+            id: '87d349ed-44d7-43e1-9a83-5f2406dee5bd',
+            name: 'Adele Vance',
+          },
+        },
+      ],
+    });
+  });
+
+  it('returns preview html activity with prepended mention entities', async () => {
+    const app = createTestApp();
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages/preview',
+      headers: authHeaders,
+      body: {
+        target,
+        mentions: [
+          {
+            id: '87d349ed-44d7-43e1-9a83-5f2406dee5bd',
+            name: 'Adele Vance',
+          },
+        ],
+        content: {
+          kind: 'html',
+          text: '<b>Please review</b>',
+        },
+      },
+    });
+
+    expect(response.status).toBe(200);
+
+    const body = response.body as Record<string, unknown>;
+    const payload = body.payload as Record<string, unknown>;
+    const activity = payload.activity as Record<string, unknown>;
+
+    expect(activity.text).toBe('<at>Adele Vance</at>\n\n<b>Please review</b>');
+    expect(activity.textFormat).toBe('xml');
+    expect(activity.entities).toEqual([
+      {
+        type: 'mention',
+        text: '<at>Adele Vance</at>',
+        mentioned: {
+          id: '87d349ed-44d7-43e1-9a83-5f2406dee5bd',
+          name: 'Adele Vance',
+        },
+      },
+    ]);
+  });
+
   it('returns preview adaptive-card activity for template requests', async () => {
     const sendMock = vi.fn().mockResolvedValue({ success: true, teamsMessageId: 'abc' });
     adapter.send = sendMock;
@@ -135,6 +225,62 @@ describe('messages endpoint', () => {
     expect(activity.textFormat).toBeUndefined();
     expect(Array.isArray(activity.attachments)).toBe(true);
     expect((activity.attachments as Array<unknown>).length).toBe(1);
+  });
+
+  it('returns preview adaptive-card activity with top mention line', async () => {
+    const app = createTestApp();
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages/preview',
+      headers: authHeaders,
+      body: {
+        target,
+        mentions: [
+          {
+            id: '87d349ed-44d7-43e1-9a83-5f2406dee5bd',
+            name: 'Adele Vance',
+          },
+        ],
+        content: {
+          kind: 'template',
+          template: 'generic',
+          data: {
+            title: 'Action required',
+            body: 'please review',
+          },
+        },
+      },
+    });
+
+    expect(response.status).toBe(200);
+
+    const body = response.body as Record<string, unknown>;
+    const payload = body.payload as Record<string, unknown>;
+    const activity = payload.activity as Record<string, unknown>;
+    const attachments = activity.attachments as Array<Record<string, unknown>>;
+    const card = attachments[0].content as Record<string, unknown>;
+    const cardBody = card.body as Array<Record<string, unknown>>;
+
+    expect(cardBody[0]).toEqual({
+      type: 'TextBlock',
+      text: '<at>Adele Vance</at>',
+      wrap: true,
+      spacing: 'None',
+      isSubtle: true,
+    });
+    expect(card.msteams).toEqual({
+      entities: [
+        {
+          type: 'mention',
+          text: '<at>Adele Vance</at>',
+          mentioned: {
+            id: '87d349ed-44d7-43e1-9a83-5f2406dee5bd',
+            name: 'Adele Vance',
+          },
+        },
+      ],
+    });
   });
 
   it('rejects missing api key', async () => {

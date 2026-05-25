@@ -1,9 +1,11 @@
 import type { ErrorCode } from '../errors';
+import type { MentionEntity } from '../types';
 
 export interface BotFrameworkActivity {
   type: 'message';
   text?: string;
   textFormat?: 'plain' | 'xml';
+  entities?: MentionEntity[];
   attachments?: Array<{
     contentType: 'application/vnd.microsoft.card.adaptive';
     content: object;
