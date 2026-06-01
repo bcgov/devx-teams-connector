@@ -25,6 +25,7 @@ describe('messages endpoint', () => {
     botServiceUrl: 'https://smba.trafficmanager.net/teams',
     tokenTenant: 'botframework.com',
     logLevel: 'silent',
+    allowCardPassthrough: false,
   };
 
   let adapter: DeliveryAdapter;
@@ -38,6 +39,15 @@ describe('messages endpoint', () => {
   function createTestApp() {
     return createApp({
       config,
+      adapter,
+      logger: pino({ enabled: false }),
+      enableHttpLogging: false,
+    });
+  }
+
+  function createCardApp() {
+    return createApp({
+      config: { ...config, allowCardPassthrough: true },
       adapter,
       logger: pino({ enabled: false }),
       enableHttpLogging: false,
@@ -411,5 +421,83 @@ describe('messages endpoint', () => {
       expect(Array.isArray(activity.attachments)).toBe(true);
       expect((activity.attachments as Array<unknown>).length).toBe(1);
     }
+  });
+
+  const passthroughCard = {
+    type: 'AdaptiveCard',
+    version: '9.9',
+    body: [{ type: 'TextBlock', text: 'pass-through' }],
+    msteams: { width: 'Full' },
+  };
+
+  it('rejects card pass-through with 400 when the flag is disabled', async () => {
+    const sendMock = vi.fn().mockResolvedValue({ success: true, teamsMessageId: 'abc' });
+    adapter.send = sendMock;
+    const app = createTestApp();
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages',
+      headers: authHeaders,
+      body: { target, content: { kind: 'card', card: passthroughCard } },
+    });
+
+    const body = response.body as Record<string, unknown>;
+
+    expect(response.status).toBe(400);
+    expect(body.code).toBe('VALIDATION_ERROR');
+    expect(sendMock).not.toHaveBeenCalled();
+  });
+
+  it('delivers a pass-through card verbatim (no clamp, no $schema injection)', async () => {
+    const sendMock = vi.fn().mockResolvedValue({ success: true, teamsMessageId: 'abc' });
+    adapter.send = sendMock;
+    const app = createCardApp();
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages',
+      headers: authHeaders,
+      body: { target, content: { kind: 'card', card: passthroughCard } },
+    });
+
+    expect(response.status).toBe(201);
+    expect(sendMock).toHaveBeenCalledTimes(1);
+
+    const args = sendMock.mock.calls[0][0] as Record<string, unknown>;
+    const activity = args.activity as Record<string, unknown>;
+    const attachments = activity.attachments as Array<Record<string, unknown>>;
+    const content = attachments[0].content as Record<string, unknown>;
+
+    expect(attachments.length).toBe(1);
+    expect(attachments[0].contentType).toBe('application/vnd.microsoft.card.adaptive');
+    // Forwarded exactly as sent: version untouched, no $schema added.
+    expect(content).toEqual(passthroughCard);
+    expect(content.version).toBe('9.9');
+    expect(content.$schema).toBeUndefined();
+  });
+
+  it('returns a pass-through card via preview without delivering', async () => {
+    const sendMock = vi.fn().mockResolvedValue({ success: true, teamsMessageId: 'abc' });
+    adapter.send = sendMock;
+    const app = createCardApp();
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages/preview',
+      headers: authHeaders,
+      body: { target, content: { kind: 'card', card: passthroughCard } },
+    });
+
+    expect(response.status).toBe(200);
+    expect(sendMock).not.toHaveBeenCalled();
+
+    const body = response.body as Record<string, unknown>;
+    const payload = body.payload as Record<string, unknown>;
+    const activity = payload.activity as Record<string, unknown>;
+    const attachments = activity.attachments as Array<Record<string, unknown>>;
+    const content = attachments[0].content as Record<string, unknown>;
+
+    expect(content).toEqual(passthroughCard);
   });
 });

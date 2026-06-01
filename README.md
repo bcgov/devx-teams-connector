@@ -13,6 +13,7 @@ Implemented:
 - Content kinds:
   - `text`
   - `template` with `template=generic|github_pull_request|github_workflow_run|sysdig|uptime|db_backup|argocd`
+  - `card` — Adaptive Card pass-through, enable with `ALLOW_CARD_PASSTHROUGH=true`. The card is forwarded to Teams as is.
 
 ## Prerequisites
 
@@ -113,6 +114,37 @@ curl -X POST http://localhost:3000/api/v1/messages \
     "content": {
       "kind": "text",
       "text": "<b>Test:</b> Deployment complete."
+    }
+  }'
+```
+
+### Send a raw Adaptive Card (passthrough)
+
+Requires `ALLOW_CARD_PASSTHROUGH=true` on the deployment. Only `type:
+"AdaptiveCard"` is checked, then the card is forwarded to Teams.
+Use `/messages/preview` first to dry-run.
+
+```bash
+curl -X POST http://localhost:3000/api/v1/messages \
+  -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target": {
+      "teamId": "00000000-0000-0000-0000-000000000000",
+      "channelId": "19:abc123@thread.tacv2"
+    },
+    "content": {
+      "kind": "card",
+      "card": {
+        "type": "AdaptiveCard",
+        "version": "1.4",
+        "body": [
+          { "type": "TextBlock", "text": "Deploy complete", "weight": "Bolder" }
+        ],
+        "actions": [
+          { "type": "Action.OpenUrl", "title": "View", "url": "https://example.com" }
+        ]
+      }
     }
   }'
 ```

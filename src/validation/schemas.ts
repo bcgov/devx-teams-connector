@@ -71,7 +71,23 @@ const TemplateContentSchema = z.discriminatedUnion('template', [
   ArgoCdTemplateContentSchema,
 ]);
 
-const ContentSchema = z.union([TextContentSchema, HtmlContentSchema, TemplateContentSchema]);
+const CardSchema = z
+  .object({
+    type: z.literal('AdaptiveCard'),
+  })
+  .passthrough();
+
+const CardContentSchema = z.object({
+  kind: z.literal('card'),
+  card: CardSchema,
+});
+
+const ContentSchema = z.union([
+  TextContentSchema,
+  HtmlContentSchema,
+  TemplateContentSchema,
+  CardContentSchema,
+]);
 
 const MetadataSchema = z.record(z.string().min(1).max(64), z.string().max(256))
   .refine((obj) => Object.keys(obj).length <= 20, { message: 'metadata: too many keys (max 20)' })
@@ -85,7 +101,14 @@ export const SendMessageRequestSchema: z.ZodType<SendMessageRequest> = z.object(
 
 export type SendMessageRequestInput = z.infer<typeof SendMessageRequestSchema>;
 
-export function validateSendMessageRequest(input: unknown): SendMessageRequestInput {
+export interface ValidateOptions {
+  allowCardPassthrough?: boolean;
+}
+
+export function validateSendMessageRequest(
+  input: unknown,
+  options: ValidateOptions = {},
+): SendMessageRequestInput {
   const parsed = SendMessageRequestSchema.safeParse(input);
 
   if (!parsed.success) {
@@ -94,6 +117,15 @@ export function validateSendMessageRequest(input: unknown): SendMessageRequestIn
     const message = issue ? `${path}: ${issue.message}` : 'Invalid request payload.';
 
     throw new ConnectorError('VALIDATION_ERROR', message, 400, false);
+  }
+
+  if (parsed.data.content.kind === 'card' && !options.allowCardPassthrough) {
+    throw new ConnectorError(
+      'VALIDATION_ERROR',
+      'content.kind "card" (pass-through) is not enabled on this deployment.',
+      400,
+      false,
+    );
   }
 
   return parsed.data;
