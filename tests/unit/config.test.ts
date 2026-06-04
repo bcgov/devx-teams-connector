@@ -28,6 +28,7 @@ describe('loadConfig', () => {
     };
 
     expect(loadConfig({ ...base, ALLOW_CARD_PASSTHROUGH: 'true' }).allowCardPassthrough).toBe(true);
+    expect(loadConfig({ ...base, ALLOW_CARD_PASSTHROUGH: 'TRUE' }).allowCardPassthrough).toBe(true);
     expect(loadConfig({ ...base, ALLOW_CARD_PASSTHROUGH: '"1"' }).allowCardPassthrough).toBe(false);
     expect(loadConfig({ ...base, ALLOW_CARD_PASSTHROUGH: 'YES' }).allowCardPassthrough).toBe(false);
     expect(loadConfig({ ...base, ALLOW_CARD_PASSTHROUGH: 'false' }).allowCardPassthrough).toBe(false);
