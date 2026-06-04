@@ -120,8 +120,7 @@ curl -X POST http://localhost:3000/api/v1/messages \
 
 ### Send a raw Adaptive Card (passthrough)
 
-Requires `ALLOW_CARD_PASSTHROUGH=true` on the deployment. Only `type:
-"AdaptiveCard"` is checked, then the card is forwarded to Teams.
+Requires `ALLOW_CARD_PASSTHROUGH=true` on the deployment. Only `type: "AdaptiveCard"` is checked, then the card is forwarded to Teams.
 Use `/messages/preview` first to dry-run.
 
 ```bash
