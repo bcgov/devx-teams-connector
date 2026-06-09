@@ -1,7 +1,14 @@
 import { z } from 'zod';
 
 import type { AdaptiveCard, DbBackupTemplateData } from '../types';
-import { createBaseCard, createCardFrame, createFactSet, createSectionSeparator, toTextColor } from './shared';
+import {
+  createActivitySummary,
+  createBaseCard,
+  createCardFrame,
+  createFactSet,
+  createSectionSeparator,
+  toTextColor,
+} from './shared';
 
 export const DbBackupTemplateDataSchema = z.object({
   status: z.enum(['info', 'warn', 'error']), // statusCode
@@ -27,6 +34,10 @@ const statusFacts: Record<DbBackupTemplateData['status'], string> = {
   warn: '⚠️ Warning',
   error: '❌ Error',
 };
+
+export function summarizeDbBackupTemplate(data: DbBackupTemplateData): string {
+  return createActivitySummary([`${statusTitles[data.status]}: ${data.projectFriendlyName}`, data.message]);
+}
 
 export function renderDbBackupTemplate(data: DbBackupTemplateData): AdaptiveCard {
   const contentItems: Array<Record<string, unknown>> = [

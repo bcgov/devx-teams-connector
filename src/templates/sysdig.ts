@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { AdaptiveCard, SysdigTemplateData } from '../types';
 import {
   IsoTimestampSchema,
+  createActivitySummary,
   createBaseCard,
   createCardFrame,
   createFactSet,
@@ -45,6 +46,12 @@ const severityFactLabels: Record<SeverityLabel, string> = {
   low: '🔵 Low',
   info: 'ℹ️ Info',
 };
+
+export function summarizeSysdigTemplate(data: SysdigTemplateData): string {
+  const state = data.state === 'ok' ? 'resolved' : 'alert';
+
+  return createActivitySummary([`Sysdig ${state}: ${data.alertName}`, data.description]);
+}
 
 export function renderSysdigTemplate(data: SysdigTemplateData): AdaptiveCard {
   const label = toSeverityLabel(data.severity);

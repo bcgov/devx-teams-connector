@@ -3,7 +3,7 @@ import type { Logger } from 'pino';
 
 import { ConnectorError } from '../errors';
 import { addMentionsToCard, prependMentionsToText } from '../mentions';
-import { renderTemplate } from '../templates';
+import { renderTemplate, summarizeTemplate } from '../templates';
 import type { MessageAccepted, SendMessageRequest } from '../types';
 import type { BotFrameworkActivity, DeliveryAdapter, DeliveryPayload } from '../adapters/types';
 
@@ -122,6 +122,7 @@ export class MessageService {
 
     return {
       type: 'message',
+      summary: summarizeTemplate(request.content.template, request.content.data),
       attachments: [
         {
           contentType: 'application/vnd.microsoft.card.adaptive',

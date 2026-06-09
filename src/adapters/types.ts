@@ -5,6 +5,7 @@ export interface BotFrameworkActivity {
   type: 'message';
   text?: string;
   textFormat?: 'plain' | 'xml';
+  summary?: string;
   entities?: MentionEntity[];
   attachments?: Array<{
     contentType: 'application/vnd.microsoft.card.adaptive';
