@@ -4,6 +4,8 @@ Minimal TypeScript/Express backend for posting notifications to Microsoft Teams 
 
 ## Scope
 
+Demo Change
+
 Implemented:
 - `POST /api/v1/messages`
 - `POST /api/v1/messages/preview` (validate + render payload only, no Bot Framework delivery)
