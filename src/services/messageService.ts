@@ -120,6 +120,7 @@ export class MessageService {
     const card = renderTemplate(request.content.template, request.content.data);
     addMentionsToCard(card, mentions);
 
+    // summary is the text Teams displays in the notification / activity feed
     return {
       type: 'message',
       summary: summarizeTemplate(request.content.template, request.content.data),

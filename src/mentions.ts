@@ -5,6 +5,7 @@ export interface MentionedText {
   entities: MentionEntity[];
 }
 
+// Add <at> mention above the message body and include the mention entities
 export function prependMentionsToText(
   text: string,
   mentions: MentionTarget[],
@@ -19,6 +20,8 @@ export function prependMentionsToText(
   };
 }
 
+// Prepend a TextBlock with mentions to the card body and include the mention entities
+// Teams resolves <at> mentions for cards via msteams.entities
 export function addMentionsToCard(card: AdaptiveCard, mentions: MentionTarget[]): AdaptiveCard {
   if (mentions.length === 0) {
     return card;
@@ -54,6 +57,7 @@ function buildMentionEntities(mentions: MentionTarget[]): MentionEntity[] {
   });
 }
 
+// Teams renders <at>name</at> as a clickable mention when a matching entity is included
 function buildMentionToken(mention: MentionTarget): string {
   return `<at>${escapeXml(mention.name)}</at>`;
 }

@@ -103,6 +103,7 @@ export function truncateText(value: string, maxLength: number): string {
   return `${value.slice(0, Math.max(0, maxLength - 3))}...`;
 }
 
+// Join non-empty fields into one line for activity summary
 export function createActivitySummary(parts: Array<string | undefined | null>, maxLength = 250): string {
   return truncateText(
     parts
