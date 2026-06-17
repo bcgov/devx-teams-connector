@@ -251,3 +251,78 @@ describe('validateSendMessageRequest', () => {
     expect(() => validateSendMessageRequest(payload)).toThrow(ConnectorError);
   });
 });
+
+describe('validateSendMessageRequest — card pass-through', () => {
+  const minimalCard = {
+    type: 'AdaptiveCard',
+    version: '1.4',
+    body: [{ type: 'TextBlock', text: 'hello' }],
+  };
+
+  function cardPayload(card: unknown) {
+    return { target, content: { kind: 'card', card } };
+  }
+
+  function codeOf(fn: () => unknown): string {
+    try {
+      fn();
+    } catch (error) {
+      if (error instanceof ConnectorError) {
+        return error.code;
+      }
+      throw error;
+    }
+    throw new Error('expected validateSendMessageRequest to throw');
+  }
+
+  it('rejects card pass-through when the flag is disabled', () => {
+    expect(codeOf(() => validateSendMessageRequest(cardPayload(minimalCard)))).toBe(
+      'VALIDATION_ERROR',
+    );
+  });
+
+  it('accepts a valid card when the flag is enabled', () => {
+    const result = validateSendMessageRequest(cardPayload(minimalCard), {
+      allowCardPassthrough: true,
+    });
+
+    expect(result.content.kind).toBe('card');
+  });
+
+  it('preserves unknown/Teams-specific card properties (passthrough)', () => {
+    const result = validateSendMessageRequest(
+      cardPayload({ ...minimalCard, msteams: { width: 'Full' }, speak: 'hi' }),
+      { allowCardPassthrough: true },
+    );
+
+    const card = (result.content as { card: Record<string, unknown> }).card;
+    expect(card.msteams).toEqual({ width: 'Full' });
+    expect(card.speak).toBe('hi');
+  });
+
+  it('accepts a bare { type: "AdaptiveCard" } (type-only floor)', () => {
+    const result = validateSendMessageRequest(cardPayload({ type: 'AdaptiveCard' }), {
+      allowCardPassthrough: true,
+    });
+
+    expect(result.content.kind).toBe('card');
+  });
+
+  it('rejects a card with the wrong/missing type literal', () => {
+    expect(
+      codeOf(() =>
+        validateSendMessageRequest(cardPayload({ ...minimalCard, type: 'Nope' }), {
+          allowCardPassthrough: true,
+        }),
+      ),
+    ).toBe('VALIDATION_ERROR');
+
+    expect(
+      codeOf(() =>
+        validateSendMessageRequest(cardPayload({ body: [] }), {
+          allowCardPassthrough: true,
+        }),
+      ),
+    ).toBe('VALIDATION_ERROR');
+  });
+});

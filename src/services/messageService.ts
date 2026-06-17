@@ -117,6 +117,18 @@ export class MessageService {
       };
     }
 
+    if (request.content.kind === 'card') {
+      return {
+        type: 'message',
+        attachments: [
+          {
+            contentType: 'application/vnd.microsoft.card.adaptive',
+            content: request.content.card,
+          },
+        ],
+      };
+    }
+
     const card = renderTemplate(request.content.template, request.content.data);
     addMentionsToCard(card, mentions);
 

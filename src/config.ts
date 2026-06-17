@@ -8,6 +8,7 @@ export interface Config {
   botServiceUrl: string;
   tokenTenant: string;
   logLevel: string;
+  allowCardPassthrough: boolean;
 }
 
 function normalizeEnvValue(value: string): string {
@@ -21,6 +22,16 @@ function normalizeEnvValue(value: string): string {
   }
 
   return trimmed;
+}
+
+function getBooleanEnv(env: NodeJS.ProcessEnv, key: string): boolean {
+  const value = env[key];
+  if (!value) {
+    return false;
+  }
+
+  const normalized = normalizeEnvValue(value).toLowerCase();
+  return normalized === 'true';
 }
 
 function getRequiredEnv(env: NodeJS.ProcessEnv, key: string): string {
@@ -61,5 +72,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     botServiceUrl: normalizeEnvValue(env.BOT_SERVICE_URL ?? 'https://smba.trafficmanager.net/teams'),
     tokenTenant: normalizeEnvValue(env.BOT_TOKEN_TENANT ?? env.TENANT_ID ?? 'botframework.com'),
     logLevel: normalizeEnvValue(env.LOG_LEVEL ?? 'info'),
+    allowCardPassthrough: getBooleanEnv(env, 'ALLOW_CARD_PASSTHROUGH'),
   };
 }

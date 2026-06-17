@@ -60,7 +60,9 @@ export function createApp(options: AppOptions): Express {
         : 'global';
     },
   }));
-  apiRouter.use(createMessagesRouter(messageService));
+  apiRouter.use(createMessagesRouter(messageService, {
+    allowCardPassthrough: options.config.allowCardPassthrough,
+  }));
 
   app.use('/api/v1', apiRouter);
 

@@ -14,6 +14,7 @@ Implemented:
 - Content kinds:
   - `text`
   - `template` with `template=generic|github_pull_request|github_workflow_run|sysdig|uptime|db_backup|argocd`
+  - `card` — Adaptive Card pass-through, enable with `ALLOW_CARD_PASSTHROUGH=true`. The card is forwarded to Teams as is.
 
 ## Prerequisites
 
@@ -118,11 +119,10 @@ curl -X POST http://localhost:3000/api/v1/messages \
   }'
 ```
 
-### Send text message with user mention
+### Send a raw Adaptive Card (passthrough)
 
-Mentions are caller provided. The connector does not look up users in Microsoft
-Graph. When `mentions` is present, the connector prepends the user mention(s)
-to the Teams message and attaches the required Bot Framework mention entities.
+Requires `ALLOW_CARD_PASSTHROUGH=true` on the deployment. Only `type: "AdaptiveCard"` is checked, then the card is forwarded to Teams.
+Use `/messages/preview` first to dry-run.
 
 ```bash
 curl -X POST http://localhost:3000/api/v1/messages \
@@ -133,24 +133,21 @@ curl -X POST http://localhost:3000/api/v1/messages \
       "teamId": "00000000-0000-0000-0000-000000000000",
       "channelId": "19:abc123@thread.tacv2"
     },
-    "mentions": [
-      {
-        "id": "87d349ed-44d7-43e1-9a83-5f2406dee5bd",
-        "name": "Adele Vance"
-      }
-    ],
     "content": {
-      "kind": "text",
-      "text": "Deployment needs review."
+      "kind": "card",
+      "card": {
+        "type": "AdaptiveCard",
+        "version": "1.4",
+        "body": [
+          { "type": "TextBlock", "text": "Deploy complete", "weight": "Bolder" }
+        ],
+        "actions": [
+          { "type": "Action.OpenUrl", "title": "View", "url": "https://example.com" }
+        ]
+      }
     }
   }'
 ```
-
-Mention notes:
-
-- `id` must be the user's Entra (AAD) object ID; the connector passes it
-  straight to Teams without lookup.
-- Maximum `10` mentions per message.
 
 ### Preview payload without sending to Teams
 

@@ -16,6 +16,22 @@ describe('loadConfig', () => {
     expect(config.botServiceUrl).toBe('https://smba.trafficmanager.net/teams');
     expect(config.tokenTenant).toBe('botframework.com');
     expect(config.logLevel).toBe('info');
+    expect(config.allowCardPassthrough).toBe(false);
+  });
+
+  it('parses ALLOW_CARD_PASSTHROUGH as a boolean flag', () => {
+    const base = {
+      PORT: '3000',
+      CONNECTOR_API_KEY: 'a-valid-api-key-that-is-at-least-32-characters',
+      BOT_ID: 'bot-id',
+      BOT_SECRET: 'bot-secret',
+    };
+
+    expect(loadConfig({ ...base, ALLOW_CARD_PASSTHROUGH: 'true' }).allowCardPassthrough).toBe(true);
+    expect(loadConfig({ ...base, ALLOW_CARD_PASSTHROUGH: 'TRUE' }).allowCardPassthrough).toBe(true);
+    expect(loadConfig({ ...base, ALLOW_CARD_PASSTHROUGH: '"1"' }).allowCardPassthrough).toBe(false);
+    expect(loadConfig({ ...base, ALLOW_CARD_PASSTHROUGH: 'YES' }).allowCardPassthrough).toBe(false);
+    expect(loadConfig({ ...base, ALLOW_CARD_PASSTHROUGH: 'false' }).allowCardPassthrough).toBe(false);
   });
 
   it('normalizes quoted env values for docker env-file compatibility', () => {

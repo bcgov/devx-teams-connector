@@ -157,7 +157,12 @@ export type TemplateContent =
   | DbBackupTemplateContent
   | ArgoCdTemplateContent;
 
-export type Content = TextContent | HtmlContent | TemplateContent;
+export interface CardContent {
+  kind: 'card';
+  card: Record<string, unknown>;
+}
+
+export type Content = TextContent | HtmlContent | TemplateContent | CardContent;
 
 export interface SendMessageRequest {
   target: Target;
