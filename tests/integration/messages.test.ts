@@ -118,6 +118,10 @@ describe('messages endpoint', () => {
             id: '87d349ed-44d7-43e1-9a83-5f2406dee5bd',
             name: 'Adele Vance',
           },
+          {
+            id: 'Jebediah.Fakename@gov.bc.ca',
+            name: 'Jebediah Fakename',
+          },
         ],
         content: {
           kind: 'text',
@@ -135,7 +139,7 @@ describe('messages endpoint', () => {
 
     expect(activity).toEqual({
       type: 'message',
-      text: '<at>Adele Vance</at>\n\nplease &lt;review&gt;',
+      text: '<at>Adele Vance</at> <at>Jebediah Fakename</at>\n\nplease &lt;review&gt;',
       textFormat: 'xml',
       entities: [
         {
@@ -144,6 +148,14 @@ describe('messages endpoint', () => {
           mentioned: {
             id: '87d349ed-44d7-43e1-9a83-5f2406dee5bd',
             name: 'Adele Vance',
+          },
+        },        
+        {
+          type: 'mention',
+          text: '<at>Jebediah Fakename</at>',
+          mentioned: {
+            id: 'Jebediah.Fakename@gov.bc.ca',
+            name: 'Jebediah Fakename',
           },
         },
       ],
@@ -242,6 +254,10 @@ describe('messages endpoint', () => {
             id: '87d349ed-44d7-43e1-9a83-5f2406dee5bd',
             name: 'Adele Vance',
           },
+          {
+            id: 'Jebediah.Fakename@gov.bc.ca',
+            name: 'Jebediah Fakename',
+          },
         ],
         content: {
           kind: 'template',
@@ -266,7 +282,7 @@ describe('messages endpoint', () => {
     expect(activity.summary).toBe('Action required - please review');
     expect(cardBody[0]).toEqual({
       type: 'TextBlock',
-      text: '<at>Adele Vance</at>',
+      text: '<at>Adele Vance</at> <at>Jebediah Fakename</at>',
       wrap: true,
       spacing: 'None',
       isSubtle: true,
@@ -279,6 +295,14 @@ describe('messages endpoint', () => {
           mentioned: {
             id: '87d349ed-44d7-43e1-9a83-5f2406dee5bd',
             name: 'Adele Vance',
+          },
+        },
+        {
+          type: 'mention',
+          text: '<at>Jebediah Fakename</at>',
+          mentioned: {
+            id: 'Jebediah.Fakename@gov.bc.ca',
+            name: 'Jebediah Fakename',
           },
         },
       ],
