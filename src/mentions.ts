@@ -64,7 +64,7 @@ function buildMentionToken(mention: MentionTarget): string {
 
 function escapeXml(value: string): string {
   return value
-    .replaceAll(/&/g, '&amp;')
-    .replaceAll(/</g, '&lt;')
-    .replaceAll(/>/g, '&gt;');
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
 }
