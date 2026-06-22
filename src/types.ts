@@ -184,6 +184,7 @@ export interface AdaptiveCard {
   body: Array<Record<string, unknown>>;
   actions?: Array<Record<string, unknown>>;
   msteams?: {
-    entities: MentionEntity[];
+    entities?: MentionEntity[];
+    [key: string]: unknown;
   };
 }
