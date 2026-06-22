@@ -11,6 +11,13 @@ export function prependMentionsToText(
   mentions: MentionTarget[],
   options: { escapeBody?: boolean } = {},
 ): MentionedText {
+  if (mentions.length === 0) {
+    return {
+      text: options.escapeBody ? escapeXml(text) : text,
+      entities: [],
+    };
+  }
+
   const mentionText = mentions.map(buildMentionToken).join(' ');
   const body = options.escapeBody ? escapeXml(text) : text;
 
