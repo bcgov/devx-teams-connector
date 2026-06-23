@@ -84,7 +84,18 @@ export interface ArgoCdTemplateData {
   url?: string;
 }
 
-export type TemplateName = 'generic' | 'github_pull_request' | 'github_workflow_run' | 'sysdig' | 'uptime' | 'db_backup' | 'argocd';
+export interface StatusCakeTemplateData {
+  status: 'up' | 'down';
+  service: string;
+  downSince?: string;
+  url?: string;
+  checkRate?: string;
+  trigger?: string;
+  region?: string;
+  message?: string;
+}
+
+export type TemplateName = 'generic' | 'github_pull_request' | 'github_workflow_run' | 'sysdig' | 'uptime' | 'db_backup' | 'argocd'| 'statuscake';
 
 export interface TemplateDataByName {
   generic: GenericTemplateData;
@@ -94,6 +105,7 @@ export interface TemplateDataByName {
   uptime: UptimeTemplateData;
   db_backup: DbBackupTemplateData;
   argocd: ArgoCdTemplateData;
+  statuscake: StatusCakeTemplateData;
 }
 
 export interface TextContent {
@@ -148,6 +160,12 @@ export interface ArgoCdTemplateContent {
   data: ArgoCdTemplateData;
 }
 
+export interface StatusCakeTemplateContent {
+  kind: 'template';
+  template: 'statuscake';
+  data: StatusCakeTemplateData;
+}
+
 export type TemplateContent =
   | GenericTemplateContent
   | GitHubPrTemplateContent
@@ -155,7 +173,8 @@ export type TemplateContent =
   | SysdigTemplateContent
   | UptimeTemplateContent
   | DbBackupTemplateContent
-  | ArgoCdTemplateContent;
+  | ArgoCdTemplateContent
+  | StatusCakeTemplateContent;
 
 export interface CardContent {
   kind: 'card';

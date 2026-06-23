@@ -13,6 +13,7 @@ import {
 } from './github';
 import { SysdigTemplateDataSchema, renderSysdigTemplate, summarizeSysdigTemplate } from './sysdig';
 import { UptimeTemplateDataSchema, renderUptimeTemplate, summarizeUptimeTemplate } from './uptime';
+import { StatusCakeTemplateDataSchema, renderStatusCakeTemplate } from './statuscake';
 
 export const templateDataSchemas = {
   generic: GenericTemplateDataSchema,
@@ -22,6 +23,7 @@ export const templateDataSchemas = {
   uptime: UptimeTemplateDataSchema,
   db_backup: DbBackupTemplateDataSchema,
   argocd: ArgoCdTemplateDataSchema,
+  statuscake: StatusCakeTemplateDataSchema,
 } as const;
 
 const templateRenderers: { [K in TemplateName]: (data: TemplateDataByName[K]) => AdaptiveCard } = {
@@ -32,6 +34,7 @@ const templateRenderers: { [K in TemplateName]: (data: TemplateDataByName[K]) =>
   uptime: renderUptimeTemplate,
   db_backup: renderDbBackupTemplate,
   argocd: renderArgoCdTemplate,
+  statuscake: renderStatusCakeTemplate,
 };
 
 const templateSummarizers: { [K in TemplateName]: (data: TemplateDataByName[K]) => string } = {
@@ -42,6 +45,7 @@ const templateSummarizers: { [K in TemplateName]: (data: TemplateDataByName[K]) 
   uptime: summarizeUptimeTemplate,
   db_backup: summarizeDbBackupTemplate,
   argocd: summarizeArgoCdTemplate,
+  
 };
 
 export function renderTemplate<T extends TemplateName>(
