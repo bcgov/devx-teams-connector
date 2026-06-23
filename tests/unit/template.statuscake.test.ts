@@ -13,8 +13,9 @@ describe('renderStatusCakeTemplate', () => {
     for (const status of ['up', 'down'] as const) {
       const card = renderStatusCakeTemplate({
         status,
-        service: 'payments-api',
-        url: 'https://status.example.com/payments-api',
+        testName: 'payments-api',
+        websiteUrl: 'https://status.example.com/payments-api',
+        alertUrl: 'https://app.statuscake.com/alerts/123',
       });
 
       const items = getContentItems(card);
@@ -24,7 +25,7 @@ describe('renderStatusCakeTemplate', () => {
       expect(actions?.[0]).toEqual({
         type: 'Action.OpenUrl',
         title: 'Open StatusCake Alert',
-        url: 'https://status.example.com/payments-api',
+        url: 'https://app.statuscake.com/alerts/123',
       });
     }
   });
@@ -32,12 +33,13 @@ describe('renderStatusCakeTemplate', () => {
   it('renders StatusCake-specific fields in fact set', () => {
     const card = renderStatusCakeTemplate({
       status: 'down',
-      service: 'payments-api',
-      downSince: '2026-02-22T12:00:00Z',
-      url: 'https://status.example.com/payments-api',
+      testName: 'payments-api',
+      websiteUrl: 'https://status.example.com/payments-api',
+      alertUrl: 'https://app.statuscake.com/alerts/123',
       checkRate: '5 minutes',
       trigger: 'HTTP status != 200',
       region: 'Vancouver',
+      alertAt: '2026-02-22T12:00:00Z',
       message: 'Endpoint failed health check',
     });
 
@@ -45,8 +47,8 @@ describe('renderStatusCakeTemplate', () => {
     const factSetBlock = items.find((item) => item.type === 'FactSet');
     const facts = factSetBlock?.facts as Array<Record<string, string>>;
 
-    expect(facts.find((entry) => entry.title === 'Down since:')).toBeDefined();
-    expect(facts).toContainEqual({ title: 'URL:', value: 'status.example.com' });
+    expect(facts.find((entry) => entry.title === 'Alert time:')).toBeDefined();
+    expect(facts).toContainEqual({ title: 'Website:', value: 'status.example.com' });
     expect(facts).toContainEqual({ title: 'Check rate:', value: '5 minutes' });
     expect(facts).toContainEqual({ title: 'Trigger:', value: 'HTTP status != 200' });
     expect(facts).toContainEqual({ title: 'Region:', value: 'Vancouver' });
@@ -56,7 +58,7 @@ describe('renderStatusCakeTemplate', () => {
   it('omits fact set when optional values are missing', () => {
     const card = renderStatusCakeTemplate({
       status: 'up',
-      service: 'payments-api',
+      testName: 'payments-api',
     });
 
     const items = getContentItems(card);

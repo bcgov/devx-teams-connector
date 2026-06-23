@@ -12,12 +12,13 @@ import {
 
 export const StatusCakeTemplateDataSchema = z.object({
   status: z.enum(['up', 'down']),
-  service: z.string().min(1),
-  downSince: IsoTimestampSchema.optional(),
-  url: z.string().url().optional(),
+  testName: z.string().min(1),
+  websiteUrl: z.string().url().optional(),
+  alertUrl: z.string().url().optional(),
   checkRate: z.string().optional(),
   trigger: z.string().optional(),
   region: z.string().optional(),
+  alertAt: IsoTimestampSchema.optional(),
   message: z.string().optional(),
 });
 
@@ -73,7 +74,7 @@ export function renderStatusCakeTemplate(data: StatusCakeTemplateData): Adaptive
     },
     {
       type: 'TextBlock',
-      text: data.service,
+      text: data.testName,
       weight: 'Bolder',
       size: 'Large',
       wrap: true,
@@ -82,10 +83,10 @@ export function renderStatusCakeTemplate(data: StatusCakeTemplateData): Adaptive
   ];
 
   const factSet = createFactSet([
-    { title: 'URL', value: toHostname(data.url) },
+    { title: 'Website', value: toHostname(data.websiteUrl) },
     {
-      title: 'Down since',
-      value: data.downSince ? formatRelativeTimeOrIso(data.downSince) : undefined,
+      title: 'Alert time',
+      value: data.alertAt ? formatRelativeTimeOrIso(data.alertAt) : undefined,
     },
     { title: 'Check rate', value: data.checkRate },
     { title: 'Trigger', value: data.trigger },
@@ -98,7 +99,9 @@ export function renderStatusCakeTemplate(data: StatusCakeTemplateData): Adaptive
     contentItems.push(factSet);
   }
 
-  if (data.url) {
+  const actionUrl = data.alertUrl ?? data.websiteUrl;
+
+  if (actionUrl) {
     contentItems.push({
       type: 'ActionSet',
       spacing: 'Medium',
@@ -106,7 +109,7 @@ export function renderStatusCakeTemplate(data: StatusCakeTemplateData): Adaptive
         {
           type: 'Action.OpenUrl',
           title: 'Open StatusCake Alert',
-          url: data.url,
+          url: actionUrl,
         },
       ],
     });

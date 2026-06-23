@@ -86,12 +86,13 @@ export interface ArgoCdTemplateData {
 
 export interface StatusCakeTemplateData {
   status: 'up' | 'down';
-  service: string;
-  downSince?: string;
-  url?: string;
+  testName: string;
+  websiteUrl?: string;
+  alertUrl?: string;
   checkRate?: string;
   trigger?: string;
   region?: string;
+  alertAt?: string;
   message?: string;
 }
 
