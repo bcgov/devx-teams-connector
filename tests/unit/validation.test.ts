@@ -201,6 +201,55 @@ describe('validateSendMessageRequest', () => {
 
     expect(() => validateSendMessageRequest(payload)).toThrow(ConnectorError);
   });
+
+  it('accepts valid mentions', () => {
+    const payload = {
+      target,
+      mentions: [
+        {
+          id: '87d349ed-44d7-43e1-9a83-5f2406dee5bd',
+          name: 'Adele Vance',
+        },
+      ],
+      content: {
+        kind: 'text',
+        text: 'please review',
+      },
+    };
+
+    const result = validateSendMessageRequest(payload);
+    expect(result.mentions).toEqual(payload.mentions);
+  });
+
+  it('treats an empty mentions array as no mentions', () => {
+    const payload = {
+      target,
+      mentions: [],
+      content: {
+        kind: 'text',
+        text: 'hello',
+      },
+    };
+
+    const result = validateSendMessageRequest(payload);
+    expect(result.mentions).toEqual([]);
+  });
+
+  it('rejects more than 10 mentions', () => {
+    const payload = {
+      target,
+      mentions: Array.from({ length: 11 }, (_, index) => ({
+        id: `user-${index}`,
+        name: `User ${index}`,
+      })),
+      content: {
+        kind: 'text',
+        text: 'hello',
+      },
+    };
+
+    expect(() => validateSendMessageRequest(payload)).toThrow(ConnectorError);
+  });
 });
 
 describe('validateSendMessageRequest — card pass-through', () => {

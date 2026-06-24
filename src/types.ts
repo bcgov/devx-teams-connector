@@ -3,6 +3,20 @@ export interface Target {
   channelId: string;
 }
 
+export interface MentionTarget {
+  id: string;
+  name: string;
+}
+
+export interface MentionEntity {
+  type: 'mention';
+  text: string;
+  mentioned: {
+    id: string;
+    name: string;
+  };
+}
+
 export interface GenericTemplateData {
   title: string;
   body?: string;
@@ -154,6 +168,7 @@ export interface SendMessageRequest {
   target: Target;
   content: Content;
   metadata?: Record<string, string>;
+  mentions?: MentionTarget[];
 }
 
 export interface MessageAccepted {
@@ -168,4 +183,8 @@ export interface AdaptiveCard {
   version: string;
   body: Array<Record<string, unknown>>;
   actions?: Array<Record<string, unknown>>;
+  msteams?: {
+    entities?: MentionEntity[];
+    [key: string]: unknown;
+  };
 }

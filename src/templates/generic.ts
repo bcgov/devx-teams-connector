@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import type { AdaptiveCard, GenericTemplateData } from '../types';
-import { createBaseCard, createCardFrame, toTextColor } from './shared';
+import { createActivitySummary, createBaseCard, createCardFrame, toTextColor } from './shared';
 
 const GenericSeveritySchema = z.enum(['critical', 'warning', 'info', 'success']);
 
@@ -27,6 +27,12 @@ const severityLabels: Record<NonNullable<GenericTemplateData['severity']>, strin
   info: 'INFO',
   success: '✅ SUCCESS',
 };
+
+export function summarizeGenericTemplate(data: GenericTemplateData): string {
+  const title = data.source ? `${data.source}: ${data.title}` : data.title;
+
+  return createActivitySummary([title, data.body]);
+}
 
 export function renderGenericTemplate(data: GenericTemplateData): AdaptiveCard {
   const severity = data.severity ?? 'info';

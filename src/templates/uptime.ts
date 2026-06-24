@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { AdaptiveCard, UptimeTemplateData } from '../types';
 import {
   IsoTimestampSchema,
+  createActivitySummary,
   createBaseCard,
   createCardFrame,
   createFactSet,
@@ -32,6 +33,10 @@ function toHostname(value: string | undefined): string | undefined {
   } catch {
     return undefined;
   }
+}
+
+export function summarizeUptimeTemplate(data: UptimeTemplateData): string {
+  return createActivitySummary([`${data.service} is ${data.status.toUpperCase()}`]);
 }
 
 export function renderUptimeTemplate(data: UptimeTemplateData): AdaptiveCard {

@@ -10,6 +10,7 @@ Implemented:
 - `GET /health`
 - API key auth (Bearer token)
 - Explicit `teamId + channelId` targeting
+- Optional user @mentions supplied by API consumers
 - Content kinds:
   - `text`
   - `template` with `template=generic|github_pull_request|github_workflow_run|sysdig|uptime|db_backup|argocd`
@@ -147,6 +148,40 @@ curl -X POST http://localhost:3000/api/v1/messages \
     }
   }'
 ```
+
+### Send text message with user mention
+
+Mentions are caller provided. The connector does not look up users in Microsoft
+Graph. When `mentions` is present, the connector prepends the user mention(s)
+to the Teams message and attaches the required Bot Framework mention entities.
+
+```bash
+curl -X POST http://localhost:3000/api/v1/messages \
+  -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target": {
+      "teamId": "00000000-0000-0000-0000-000000000000",
+      "channelId": "19:abc123@thread.tacv2"
+    },
+    "mentions": [
+      {
+        "id": "87d349ed-44d7-43e1-9a83-5f2406dee5bd",
+        "name": "Adele Vance"
+      }
+    ],
+    "content": {
+      "kind": "text",
+      "text": "Deployment needs review."
+    }
+  }'
+```
+
+Mention notes:
+
+- `id` must be the user's Entra object ID or email login; the connector passes it
+  straight to Teams without lookup.
+- Maximum `10` mentions per message.
 
 ### Preview payload without sending to Teams
 

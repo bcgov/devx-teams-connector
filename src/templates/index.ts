@@ -1,11 +1,18 @@
 import type { AdaptiveCard, TemplateDataByName, TemplateName } from '../types';
 
-import { ArgoCdTemplateDataSchema, renderArgoCdTemplate } from './argocd';
-import { DbBackupTemplateDataSchema, renderDbBackupTemplate } from './dbbackup';
-import { GenericTemplateDataSchema, renderGenericTemplate } from './generic';
-import { GitHubPrTemplateDataSchema, GitHubWorkflowTemplateDataSchema, renderGitHubPrTemplate, renderGitHubWorkflowTemplate } from './github';
-import { SysdigTemplateDataSchema, renderSysdigTemplate } from './sysdig';
-import { UptimeTemplateDataSchema, renderUptimeTemplate } from './uptime';
+import { ArgoCdTemplateDataSchema, renderArgoCdTemplate, summarizeArgoCdTemplate } from './argocd';
+import { DbBackupTemplateDataSchema, renderDbBackupTemplate, summarizeDbBackupTemplate } from './dbbackup';
+import { GenericTemplateDataSchema, renderGenericTemplate, summarizeGenericTemplate } from './generic';
+import {
+  GitHubPrTemplateDataSchema,
+  GitHubWorkflowTemplateDataSchema,
+  renderGitHubPrTemplate,
+  renderGitHubWorkflowTemplate,
+  summarizeGitHubPrTemplate,
+  summarizeGitHubWorkflowTemplate,
+} from './github';
+import { SysdigTemplateDataSchema, renderSysdigTemplate, summarizeSysdigTemplate } from './sysdig';
+import { UptimeTemplateDataSchema, renderUptimeTemplate, summarizeUptimeTemplate } from './uptime';
 
 export const templateDataSchemas = {
   generic: GenericTemplateDataSchema,
@@ -27,11 +34,28 @@ const templateRenderers: { [K in TemplateName]: (data: TemplateDataByName[K]) =>
   argocd: renderArgoCdTemplate,
 };
 
+const templateSummarizers: { [K in TemplateName]: (data: TemplateDataByName[K]) => string } = {
+  generic: summarizeGenericTemplate,
+  github_pull_request: summarizeGitHubPrTemplate,
+  github_workflow_run: summarizeGitHubWorkflowTemplate,
+  sysdig: summarizeSysdigTemplate,
+  uptime: summarizeUptimeTemplate,
+  db_backup: summarizeDbBackupTemplate,
+  argocd: summarizeArgoCdTemplate,
+};
+
 export function renderTemplate<T extends TemplateName>(
   template: T,
   data: TemplateDataByName[T],
 ): AdaptiveCard {
   return templateRenderers[template](data);
+}
+
+export function summarizeTemplate<T extends TemplateName>(
+  template: T,
+  data: TemplateDataByName[T],
+): string {
+  return templateSummarizers[template](data);
 }
 
 export type { TemplateName } from '../types';

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { AdaptiveCard, ArgoCdTemplateData } from '../types';
 import {
   IsoTimestampSchema,
+  createActivitySummary,
   createBaseCard,
   createCardFrame,
   createFactSet,
@@ -46,6 +47,10 @@ const defaultHealthStatuses: Partial<Record<ArgoCdTemplateData['event'], string>
   sync_succeeded: 'Healthy',
   sync_failed: 'Degraded',
 };
+
+export function summarizeArgoCdTemplate(data: ArgoCdTemplateData): string {
+  return createActivitySummary([`${eventBadges[data.event]}: ${data.application}`, data.message]);
+}
 
 const syncStatusLabels: Record<string, string> = {
   Synced: '✅ Synced',

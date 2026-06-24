@@ -103,6 +103,17 @@ export function truncateText(value: string, maxLength: number): string {
   return `${value.slice(0, Math.max(0, maxLength - 3))}...`;
 }
 
+// Join non-empty fields into one line for activity summary
+export function createActivitySummary(parts: Array<string | undefined | null>, maxLength = 250): string {
+  return truncateText(
+    parts
+      .filter((part): part is string => typeof part === 'string' && part.trim().length > 0)
+      .map((part) => part.replace(/\s+/g, ' ').trim())
+      .join(' - '),
+    maxLength,
+  );
+}
+
 export function formatRelativeTimeOrIso(value: string, nowMs: number = Date.now()): string {
   const parsed = new Date(value);
 

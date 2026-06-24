@@ -2,7 +2,8 @@ import { randomUUID } from 'node:crypto';
 import type { Logger } from 'pino';
 
 import { ConnectorError } from '../errors';
-import { renderTemplate } from '../templates';
+import { addMentionsToCard, prependMentionsToText } from '../mentions';
+import { renderTemplate, summarizeTemplate } from '../templates';
 import type { MessageAccepted, SendMessageRequest } from '../types';
 import type { BotFrameworkActivity, DeliveryAdapter, DeliveryPayload } from '../adapters/types';
 
@@ -39,6 +40,7 @@ export class MessageService {
         contentKind: request.content.kind,
         template: request.content.kind === 'template' ? request.content.template : undefined,
         metadataKeys: request.metadata ? Object.keys(request.metadata) : undefined,
+        mentionCount: request.mentions?.length,
         status: accepted.status,
       },
       'Message delivered',
@@ -57,6 +59,7 @@ export class MessageService {
         contentKind: request.content.kind,
         template: request.content.kind === 'template' ? request.content.template : undefined,
         metadataKeys: request.metadata ? Object.keys(request.metadata) : undefined,
+        mentionCount: request.mentions?.length,
         mode: 'preview',
       },
       'Preview payload generated',
@@ -74,7 +77,20 @@ export class MessageService {
   }
 
   private buildActivity(request: SendMessageRequest): BotFrameworkActivity {
+    const mentions = request.mentions ?? [];
+
     if (request.content.kind === 'text') {
+      if (mentions.length > 0) {
+        const mentionedText = prependMentionsToText(request.content.text, mentions, { escapeBody: true });
+
+        return {
+          type: 'message',
+          text: mentionedText.text,
+          textFormat: 'xml',
+          entities: mentionedText.entities,
+        };
+      }
+
       return {
         type: 'message',
         text: request.content.text,
@@ -83,6 +99,17 @@ export class MessageService {
     }
 
     if (request.content.kind === 'html') {
+      if (mentions.length > 0) {
+        const mentionedText = prependMentionsToText(request.content.text, mentions);
+
+        return {
+          type: 'message',
+          text: mentionedText.text,
+          textFormat: 'xml',
+          entities: mentionedText.entities,
+        };
+      }
+
       return {
         type: 'message',
         text: request.content.text,
@@ -103,9 +130,12 @@ export class MessageService {
     }
 
     const card = renderTemplate(request.content.template, request.content.data);
+    addMentionsToCard(card, mentions);
 
+    // summary is the text Teams displays in the notification / activity feed
     return {
       type: 'message',
+      summary: summarizeTemplate(request.content.template, request.content.data),
       attachments: [
         {
           contentType: 'application/vnd.microsoft.card.adaptive',

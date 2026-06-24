@@ -1,7 +1,14 @@
 import { z } from 'zod';
 
 import type { AdaptiveCard, GitHubPrTemplateData, GitHubWorkflowTemplateData } from '../types';
-import { createBaseCard, createCardFrame, createFactSet, createSectionSeparator, truncateText } from './shared';
+import {
+  createActivitySummary,
+  createBaseCard,
+  createCardFrame,
+  createFactSet,
+  createSectionSeparator,
+  truncateText,
+} from './shared';
 
 export const GitHubPrTemplateDataSchema = z.object({
   event: z.string().min(1), // action: "opened" | "closed"
@@ -42,6 +49,12 @@ const eventTextColors: Record<string, 'Good' | 'Attention' | 'Default'> = {
 
 function formatEventBadge(event: string): string {
   return `Pull Request ${event.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}`;
+}
+
+export function summarizeGitHubPrTemplate(data: GitHubPrTemplateData): string {
+  const event = eventBadges[data.event] ?? formatEventBadge(data.event);
+
+  return createActivitySummary([`${event}: ${data.repo} - ${data.title}`, `by ${data.author}`]);
 }
 
 export function renderGitHubPrTemplate(data: GitHubPrTemplateData): AdaptiveCard {
@@ -139,6 +152,16 @@ const workflowTextColors: Record<WorkflowLabel, 'Good' | 'Attention' | 'Warning'
   queued: 'Default',
   other: 'Default',
 };
+
+export function summarizeGitHubWorkflowTemplate(data: GitHubWorkflowTemplateData): string {
+  const label = toWorkflowLabel(data.conclusion, data.event);
+
+  return createActivitySummary([
+    `${workflowBadges[label]}: ${data.workflow}`,
+    `${data.repo}@${data.branch}`,
+    data.message,
+  ]);
+}
 
 export function renderGitHubWorkflowTemplate(data: GitHubWorkflowTemplateData): AdaptiveCard {
   const label = toWorkflowLabel(data.conclusion, data.event);

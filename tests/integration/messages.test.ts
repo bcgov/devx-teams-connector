@@ -112,6 +112,108 @@ describe('messages endpoint', () => {
     });
   });
 
+  it('returns preview text activity with prepended mention entities', async () => {
+    const sendMock = vi.fn().mockResolvedValue({ success: true, teamsMessageId: 'abc' });
+    adapter.send = sendMock;
+    const app = createTestApp();
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages/preview',
+      headers: authHeaders,
+      body: {
+        target,
+        mentions: [
+          {
+            id: '87d349ed-44d7-43e1-9a83-5f2406dee5bd',
+            name: 'Adele Vance',
+          },
+          {
+            id: 'Jebediah.Fakename@gov.bc.ca',
+            name: 'Jebediah Fakename',
+          },
+        ],
+        content: {
+          kind: 'text',
+          text: 'please <review>',
+        },
+      },
+    });
+
+    expect(response.status).toBe(200);
+    expect(sendMock).not.toHaveBeenCalled();
+
+    const body = response.body as Record<string, unknown>;
+    const payload = body.payload as Record<string, unknown>;
+    const activity = payload.activity as Record<string, unknown>;
+
+    expect(activity).toEqual({
+      type: 'message',
+      text: '<at>Adele Vance</at> <at>Jebediah Fakename</at>\n\nplease &lt;review&gt;',
+      textFormat: 'xml',
+      entities: [
+        {
+          type: 'mention',
+          text: '<at>Adele Vance</at>',
+          mentioned: {
+            id: '87d349ed-44d7-43e1-9a83-5f2406dee5bd',
+            name: 'Adele Vance',
+          },
+        },        
+        {
+          type: 'mention',
+          text: '<at>Jebediah Fakename</at>',
+          mentioned: {
+            id: 'Jebediah.Fakename@gov.bc.ca',
+            name: 'Jebediah Fakename',
+          },
+        },
+      ],
+    });
+  });
+
+  it('returns preview html activity with prepended mention entities', async () => {
+    const app = createTestApp();
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages/preview',
+      headers: authHeaders,
+      body: {
+        target,
+        mentions: [
+          {
+            id: '87d349ed-44d7-43e1-9a83-5f2406dee5bd',
+            name: 'Adele Vance',
+          },
+        ],
+        content: {
+          kind: 'html',
+          text: '<b>Please review</b>',
+        },
+      },
+    });
+
+    expect(response.status).toBe(200);
+
+    const body = response.body as Record<string, unknown>;
+    const payload = body.payload as Record<string, unknown>;
+    const activity = payload.activity as Record<string, unknown>;
+
+    expect(activity.text).toBe('<at>Adele Vance</at>\n\n<b>Please review</b>');
+    expect(activity.textFormat).toBe('xml');
+    expect(activity.entities).toEqual([
+      {
+        type: 'mention',
+        text: '<at>Adele Vance</at>',
+        mentioned: {
+          id: '87d349ed-44d7-43e1-9a83-5f2406dee5bd',
+          name: 'Adele Vance',
+        },
+      },
+    ]);
+  });
+
   it('returns preview adaptive-card activity for template requests', async () => {
     const sendMock = vi.fn().mockResolvedValue({ success: true, teamsMessageId: 'abc' });
     adapter.send = sendMock;
@@ -141,10 +243,80 @@ describe('messages endpoint', () => {
     const payload = body.payload as Record<string, unknown>;
     const activity = payload.activity as Record<string, unknown>;
 
+    expect(activity.summary).toBe('Sysdig alert: CPU saturation');
     expect(activity.text).toBeUndefined();
     expect(activity.textFormat).toBeUndefined();
     expect(Array.isArray(activity.attachments)).toBe(true);
     expect((activity.attachments as Array<unknown>).length).toBe(1);
+  });
+
+  it('returns preview adaptive-card activity with top mention line', async () => {
+    const app = createTestApp();
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages/preview',
+      headers: authHeaders,
+      body: {
+        target,
+        mentions: [
+          {
+            id: '87d349ed-44d7-43e1-9a83-5f2406dee5bd',
+            name: 'Adele Vance',
+          },
+          {
+            id: 'Jebediah.Fakename@gov.bc.ca',
+            name: 'Jebediah Fakename',
+          },
+        ],
+        content: {
+          kind: 'template',
+          template: 'generic',
+          data: {
+            title: 'Action required',
+            body: 'please review',
+          },
+        },
+      },
+    });
+
+    expect(response.status).toBe(200);
+
+    const body = response.body as Record<string, unknown>;
+    const payload = body.payload as Record<string, unknown>;
+    const activity = payload.activity as Record<string, unknown>;
+    const attachments = activity.attachments as Array<Record<string, unknown>>;
+    const card = attachments[0].content as Record<string, unknown>;
+    const cardBody = card.body as Array<Record<string, unknown>>;
+
+    expect(activity.summary).toBe('Action required - please review');
+    expect(cardBody[0]).toEqual({
+      type: 'TextBlock',
+      text: '<at>Adele Vance</at> <at>Jebediah Fakename</at>',
+      wrap: true,
+      spacing: 'None',
+      isSubtle: true,
+    });
+    expect(card.msteams).toEqual({
+      entities: [
+        {
+          type: 'mention',
+          text: '<at>Adele Vance</at>',
+          mentioned: {
+            id: '87d349ed-44d7-43e1-9a83-5f2406dee5bd',
+            name: 'Adele Vance',
+          },
+        },
+        {
+          type: 'mention',
+          text: '<at>Jebediah Fakename</at>',
+          mentioned: {
+            id: 'Jebediah.Fakename@gov.bc.ca',
+            name: 'Jebediah Fakename',
+          },
+        },
+      ],
+    });
   });
 
   it('rejects missing api key', async () => {
@@ -318,13 +490,13 @@ describe('messages endpoint', () => {
     expect(response.status).toBe(200);
   });
 
-  it('sends each supported template as attachment-only activity', async () => {
+  it('sends each supported template with an activity summary and adaptive card attachment', async () => {
     const sendMock = vi.fn().mockResolvedValue({ success: true, teamsMessageId: 'abc' });
     adapter.send = sendMock;
 
     const app = createTestApp();
 
-    const templatePayloads: Array<{ template: TemplateName; data: Record<string, unknown> }> = [
+    const templatePayloads: Array<{ template: TemplateName; data: Record<string, unknown>; summary: string }> = [
       {
         template: 'generic',
         data: {
@@ -332,6 +504,7 @@ describe('messages endpoint', () => {
           body: 'DB maintenance in 30 minutes.',
           severity: 'warning',
         },
+        summary: 'Maintenance Window - DB maintenance in 30 minutes.',
       },
       {
         template: 'github_pull_request',
@@ -342,6 +515,7 @@ describe('messages endpoint', () => {
           author: 'octocat',
           url: 'https://github.com/org/repo/pull/123',
         },
+        summary: 'Pull Request Opened: org/repo - PR #123 - by octocat',
       },
       {
         template: 'github_workflow_run',
@@ -354,6 +528,7 @@ describe('messages endpoint', () => {
           author: 'octocat',
           url: 'https://github.com/org/repo/actions/runs/456',
         },
+        summary: 'Workflow Failed: CI/CD Pipeline - org/repo@main',
       },
       {
         template: 'sysdig',
@@ -362,6 +537,7 @@ describe('messages endpoint', () => {
           alertName: 'CPU saturation',
           timestamp: '2026-02-22T12:00:00Z',
         },
+        summary: 'Sysdig alert: CPU saturation',
       },
       {
         template: 'uptime',
@@ -369,6 +545,7 @@ describe('messages endpoint', () => {
           status: 'down',
           service: 'payments-api',
         },
+        summary: 'payments-api is DOWN',
       },
       {
         template: 'db_backup',
@@ -377,6 +554,7 @@ describe('messages endpoint', () => {
           projectName: 'abc123',
           projectFriendlyName: 'My Project',
         },
+        summary: 'Database Backup · Info: My Project',
       },
       {
         template: 'argocd',
@@ -389,6 +567,7 @@ describe('messages endpoint', () => {
           message: 'ComparisonError: exceeded timeout waiting for condition',
           url: 'https://argocd.example.com/applications/platform-registry-prod',
         },
+        summary: 'ArgoCD · Sync Failed: platform-registry-prod - ComparisonError: exceeded timeout waiting for condition',
       },
     ];
 
@@ -412,10 +591,11 @@ describe('messages endpoint', () => {
 
     expect(sendMock).toHaveBeenCalledTimes(templatePayloads.length);
 
-    for (const call of sendMock.mock.calls) {
+    for (const [index, call] of sendMock.mock.calls.entries()) {
       const args = call[0] as Record<string, unknown>;
       const activity = args.activity as Record<string, unknown>;
 
+      expect(activity.summary).toBe(templatePayloads[index].summary);
       expect(activity.text).toBeUndefined();
       expect(activity.textFormat).toBeUndefined();
       expect(Array.isArray(activity.attachments)).toBe(true);
