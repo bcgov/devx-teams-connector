@@ -13,7 +13,7 @@ import {
 } from './github';
 import { SysdigTemplateDataSchema, renderSysdigTemplate, summarizeSysdigTemplate } from './sysdig';
 import { UptimeTemplateDataSchema, renderUptimeTemplate, summarizeUptimeTemplate } from './uptime';
-import { StatusCakeTemplateDataSchema, renderStatusCakeTemplate } from './statuscake';
+import { StatusCakeTemplateDataSchema, renderStatusCakeTemplate, summarizeStatusCakeTemplate } from './statuscake';
 
 export const templateDataSchemas = {
   generic: GenericTemplateDataSchema,
@@ -45,7 +45,7 @@ const templateSummarizers: { [K in TemplateName]: (data: TemplateDataByName[K]) 
   uptime: summarizeUptimeTemplate,
   db_backup: summarizeDbBackupTemplate,
   argocd: summarizeArgoCdTemplate,
-  
+  statuscake: summarizeStatusCakeTemplate,
 };
 
 export function renderTemplate<T extends TemplateName>(

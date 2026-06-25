@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { AdaptiveCard, StatusCakeTemplateData } from '../types';
 import {
   IsoTimestampSchema,
+  createActivitySummary,
   createBaseCard,
   createCardFrame,
   createFactSet,
@@ -35,6 +36,10 @@ function toHostname(value: string | undefined): string | undefined {
   } catch {
     return undefined;
   }
+}
+
+export function summarizeStatusCakeTemplate(data: StatusCakeTemplateData): string {
+  return createActivitySummary([`${data.testName} is ${data.status.toUpperCase()}`]);
 }
 
 export function renderStatusCakeTemplate(data: StatusCakeTemplateData): AdaptiveCard {
