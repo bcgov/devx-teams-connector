@@ -49,6 +49,12 @@ const UptimeTemplateContentSchema = z.object({
   data: templateDataSchemas.uptime,
 });
 
+const StatusCakeTemplateContentSchema = z.object({
+  kind: z.literal('template'),
+  template: z.literal('statuscake'),
+  data: templateDataSchemas.statuscake,
+});
+
 const DbBackupTemplateContentSchema = z.object({
   kind: z.literal('template'),
   template: z.literal('db_backup'),
@@ -69,6 +75,7 @@ const TemplateContentSchema = z.discriminatedUnion('template', [
   UptimeTemplateContentSchema,
   DbBackupTemplateContentSchema,
   ArgoCdTemplateContentSchema,
+  StatusCakeTemplateContentSchema,
 ]);
 
 const CardSchema = z
