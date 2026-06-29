@@ -11,16 +11,15 @@ import {
   formatRelativeTimeOrIso,
 } from './shared';
 
+// https://www.statuscake.com/kb/knowledge-base/how-to-use-the-web-hook-url/
 export const StatusCakeTemplateDataSchema = z.object({
-  status: z.enum(['up', 'down']),
-  testName: z.string().min(1),
-  websiteUrl: z.string().url().optional(),
-  alertUrl: z.string().url().optional(),
-  checkRate: z.string().optional(),
-  trigger: z.string().optional(),
-  region: z.string().optional(),
-  alertAt: IsoTimestampSchema.optional(),
-  message: z.string().optional(),
+  status: z.enum(['up', 'down']), // POST['Status']
+  testName: z.string().min(1), // POST['Name']
+  websiteUrl: z.string().url().optional(), // POST['URL']
+  statusCode: z.string().optional(), // POST['StatusCode']
+  ip: z.string().optional(), // POST['IP']
+  tags: z.string().optional(), // POST['Tags']
+  checkRate: z.string().optional(), // POST['Checkrate']
 });
 
 const statusBadges: Record<StatusCakeTemplateData['status'], string> = {
