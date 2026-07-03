@@ -9,7 +9,7 @@ export interface MentionTarget {
 }
 
 export interface MentionEntity {
-  type: "mention";
+  type: 'mention';
   text: string;
   mentioned: {
     id: string;
@@ -20,7 +20,7 @@ export interface MentionEntity {
 export interface GenericTemplateData {
   title: string;
   body?: string;
-  severity?: "critical" | "warning" | "info" | "success";
+  severity?: 'critical' | 'warning' | 'info' | 'success';
   url?: string;
   urlLabel?: string;
   source?: string;
@@ -50,7 +50,7 @@ export interface GitHubWorkflowTemplateData {
 export interface SysdigTemplateData {
   severity: number;
   alertName: string;
-  state?: "active" | "ok";
+  state?: 'active' | 'ok';
   scope?: string;
   description?: string;
   timestamp?: string;
@@ -58,30 +58,24 @@ export interface SysdigTemplateData {
 }
 
 export interface UptimeTemplateData {
-  status: "up" | "down";
+  status: 'up' | 'down';
   service: string;
   downSince?: string;
   url?: string;
 }
 
 export interface DbBackupTemplateData {
-  status: "info" | "warn" | "error";
+  status: 'info' | 'warn' | 'error';
   projectName: string;
   projectFriendlyName: string;
   message?: string;
 }
 
 export interface ArgoCdTemplateData {
-  event: "sync_succeeded" | "sync_failed" | "out_of_sync";
+  event: 'sync_succeeded' | 'sync_failed' | 'out_of_sync';
   application: string;
-  syncStatus?: "Synced" | "OutOfSync" | "Unknown";
-  healthStatus?:
-    | "Healthy"
-    | "Degraded"
-    | "Progressing"
-    | "Missing"
-    | "Suspended"
-    | "Unknown";
+  syncStatus?: 'Synced' | 'OutOfSync' | 'Unknown';
+  healthStatus?: 'Healthy' | 'Degraded' | 'Progressing' | 'Missing' | 'Suspended' | 'Unknown';
   revision?: string;
   project?: string;
   target?: string;
@@ -91,7 +85,7 @@ export interface ArgoCdTemplateData {
 }
 
 export interface StatusCakeTemplateData {
-  status: "up" | "down";
+  status: 'up' | 'down';
   testName: string;
   websiteUrl?: string;
   checkRate?: string;
@@ -102,15 +96,7 @@ export interface StatusCakeTemplateData {
   testId?: string;
 }
 
-export type TemplateName =
-  | "generic"
-  | "github_pull_request"
-  | "github_workflow_run"
-  | "sysdig"
-  | "uptime"
-  | "db_backup"
-  | "argocd"
-  | "statuscake";
+export type TemplateName = 'generic' | 'github_pull_request' | 'github_workflow_run' | 'sysdig' | 'uptime' | 'db_backup' | 'argocd' | 'statuscake';
 
 export interface TemplateDataByName {
   generic: GenericTemplateData;
@@ -124,60 +110,60 @@ export interface TemplateDataByName {
 }
 
 export interface TextContent {
-  kind: "text";
+  kind: 'text';
   text: string;
 }
 
 export interface HtmlContent {
-  kind: "html";
+  kind: 'html';
   text: string;
 }
 
 export interface GenericTemplateContent {
-  kind: "template";
-  template: "generic";
+  kind: 'template';
+  template: 'generic';
   data: GenericTemplateData;
 }
 
 export interface GitHubPrTemplateContent {
-  kind: "template";
-  template: "github_pull_request";
+  kind: 'template';
+  template: 'github_pull_request';
   data: GitHubPrTemplateData;
 }
 
 export interface GitHubWorkflowTemplateContent {
-  kind: "template";
-  template: "github_workflow_run";
+  kind: 'template';
+  template: 'github_workflow_run';
   data: GitHubWorkflowTemplateData;
 }
 
 export interface SysdigTemplateContent {
-  kind: "template";
-  template: "sysdig";
+  kind: 'template';
+  template: 'sysdig';
   data: SysdigTemplateData;
 }
 
 export interface UptimeTemplateContent {
-  kind: "template";
-  template: "uptime";
+  kind: 'template';
+  template: 'uptime';
   data: UptimeTemplateData;
 }
 
 export interface DbBackupTemplateContent {
-  kind: "template";
-  template: "db_backup";
+  kind: 'template';
+  template: 'db_backup';
   data: DbBackupTemplateData;
 }
 
 export interface ArgoCdTemplateContent {
-  kind: "template";
-  template: "argocd";
+  kind: 'template';
+  template: 'argocd';
   data: ArgoCdTemplateData;
 }
 
 export interface StatusCakeTemplateContent {
-  kind: "template";
-  template: "statuscake";
+  kind: 'template';
+  template: 'statuscake';
   data: StatusCakeTemplateData;
 }
 
@@ -192,7 +178,7 @@ export type TemplateContent =
   | StatusCakeTemplateContent;
 
 export interface CardContent {
-  kind: "card";
+  kind: 'card';
   card: Record<string, unknown>;
 }
 
@@ -207,13 +193,13 @@ export interface SendMessageRequest {
 
 export interface MessageAccepted {
   id: string;
-  status: "delivered";
+  status: 'delivered';
   timestamp: string;
 }
 
 export interface AdaptiveCard {
-  type: "AdaptiveCard";
-  $schema: string;
+  type: 'AdaptiveCard';
+  '$schema': string;
   version: string;
   body: Array<Record<string, unknown>>;
   actions?: Array<Record<string, unknown>>;
