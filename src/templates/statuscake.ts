@@ -1,30 +1,30 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import type { AdaptiveCard, StatusCakeTemplateData } from '../types';
+import type { AdaptiveCard, StatusCakeTemplateData } from "../types";
 import {
-  IsoTimestampSchema,
   createActivitySummary,
   createBaseCard,
   createCardFrame,
   createFactSet,
   createSectionSeparator,
-  formatRelativeTimeOrIso,
-} from './shared';
+} from "./shared";
 
 // https://www.statuscake.com/kb/knowledge-base/how-to-use-the-web-hook-url/
 export const StatusCakeTemplateDataSchema = z.object({
-  status: z.enum(['up', 'down']), // POST['Status']
+  status: z.enum(["up", "down"]), // POST['Status']
   testName: z.string().min(1), // POST['Name']
   websiteUrl: z.string().url().optional(), // POST['URL']
   statusCode: z.string().optional(), // POST['StatusCode']
   ip: z.string().optional(), // POST['IP']
   tags: z.string().optional(), // POST['Tags']
   checkRate: z.string().optional(), // POST['Checkrate']
+  testId: z.string().optional(), // body.TestID from n8n payload
+  method: z.string().optional(), // body.Method from n8n payload
 });
 
-const statusBadges: Record<StatusCakeTemplateData['status'], string> = {
-  up: '🟢 UP',
-  down: '🔴 DOWN',
+const statusBadges: Record<StatusCakeTemplateData["status"], string> = {
+  up: "🟢 UP",
+  down: "🔴 DOWN",
 };
 
 function toHostname(value: string | undefined): string | undefined {
@@ -37,65 +37,68 @@ function toHostname(value: string | undefined): string | undefined {
   }
 }
 
-export function summarizeStatusCakeTemplate(data: StatusCakeTemplateData): string {
-  return createActivitySummary([`${data.testName} is ${data.status.toUpperCase()}`]);
+export function summarizeStatusCakeTemplate(
+  data: StatusCakeTemplateData,
+): string {
+  return createActivitySummary([
+    `${data.testName} is ${data.status.toUpperCase()}`,
+  ]);
 }
 
-export function renderStatusCakeTemplate(data: StatusCakeTemplateData): AdaptiveCard {
+export function renderStatusCakeTemplate(
+  data: StatusCakeTemplateData,
+): AdaptiveCard {
   const contentItems: Array<Record<string, unknown>> = [
     {
-      type: 'ColumnSet',
-      spacing: 'None',
+      type: "ColumnSet",
+      spacing: "None",
       columns: [
         {
-          type: 'Column',
-          width: 'stretch',
+          type: "Column",
+          width: "stretch",
           items: [
             {
-              type: 'TextBlock',
+              type: "TextBlock",
               text: statusBadges[data.status],
-              size: 'Small',
-              color: data.status === 'up' ? 'Good' : 'Attention',
-              weight: 'Bolder',
-              spacing: 'None',
+              size: "Small",
+              color: data.status === "up" ? "Good" : "Attention",
+              weight: "Bolder",
+              spacing: "None",
             },
           ],
         },
         {
-          type: 'Column',
-          width: 'auto',
+          type: "Column",
+          width: "auto",
           items: [
             {
-              type: 'TextBlock',
-              text: 'StatusCake',
-              size: 'Small',
+              type: "TextBlock",
+              text: "StatusCake",
+              size: "Small",
               isSubtle: true,
-              spacing: 'None',
+              spacing: "None",
             },
           ],
         },
       ],
     },
     {
-      type: 'TextBlock',
+      type: "TextBlock",
       text: data.testName,
-      weight: 'Bolder',
-      size: 'Large',
+      weight: "Bolder",
+      size: "Large",
       wrap: true,
-      spacing: 'Small',
+      spacing: "Small",
     },
   ];
 
   const factSet = createFactSet([
-    { title: 'Website', value: toHostname(data.websiteUrl) },
-    {
-      title: 'Alert time',
-      value: data.alertAt ? formatRelativeTimeOrIso(data.alertAt) : undefined,
-    },
-    { title: 'Check rate', value: data.checkRate },
-    { title: 'Trigger', value: data.trigger },
-    { title: 'Region', value: data.region },
-    { title: 'Message', value: data.message },
+    { title: "Website", value: toHostname(data.websiteUrl) },
+    { title: "Method", value: data.method },
+    { title: "Status code", value: data.statusCode },
+    { title: "Check rate", value: data.checkRate },
+    { title: "Tags", value: data.tags },
+    { title: "IP", value: data.ip },
   ]);
 
   if (factSet) {
@@ -103,16 +106,18 @@ export function renderStatusCakeTemplate(data: StatusCakeTemplateData): Adaptive
     contentItems.push(factSet);
   }
 
-  const actionUrl = data.alertUrl ?? data.websiteUrl;
+  const actionUrl = data.testId
+    ? `https://app.statuscake.com/UptimeStatus.php?tid=${encodeURIComponent(data.testId)}`
+    : undefined;
 
   if (actionUrl) {
     contentItems.push({
-      type: 'ActionSet',
-      spacing: 'Medium',
+      type: "ActionSet",
+      spacing: "Medium",
       actions: [
         {
-          type: 'Action.OpenUrl',
-          title: 'Open StatusCake Alert',
+          type: "Action.OpenUrl",
+          title: "Open StatusCake Alert",
           url: actionUrl,
         },
       ],
