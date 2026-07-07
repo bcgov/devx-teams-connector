@@ -42,6 +42,13 @@ interface Args {
   revision?: string;
   project?: string;
   targetName?: string;
+  testName?: string;
+  websiteUrl?: string;
+  testId?: string;
+  method?: string;
+  statusCode?: string;
+  checkRate?: string;
+  tags?: string;
 }
 
 function printHelp(): void {
@@ -306,6 +313,34 @@ function parseArgs(): Args {
         args.targetName = next;
         i++;
         break;
+        case '--testName':
+        args.testName = next;
+        i++;
+        break;
+      case '--websiteUrl':
+        args.websiteUrl = next;
+        i++;
+        break;
+      case '--testId':
+        args.testId = next;
+        i++;
+        break;
+      case '--method':
+        args.method = next;
+        i++;
+        break;
+      case '--statusCode':
+        args.statusCode = next;
+        i++;
+        break;
+      case '--checkRate':
+        args.checkRate = next;
+        i++;
+        break;
+      case '--tags':
+        args.tags = next;
+        i++;
+        break;
       case '--help':
         printHelp();
         process.exit(0);
@@ -429,6 +464,22 @@ function buildTemplateContent(args: Args): { kind: 'template'; template: Templat
           service: requireArg(args.service, '--service'),
           ...(args.downSince && { downSince: args.downSince }),
           ...(args.url && { url: args.url }),
+        },
+      };
+      
+    case 'statuscake':
+      return {
+        kind: 'template',
+        template: 'statuscake',
+        data: {
+          status: ensureValueInSet(args.status, '--status', ['up', 'down']),
+          testName: requireArg(args.testName, '--testName'),
+          ...(args.websiteUrl && { websiteUrl: args.websiteUrl }),
+          ...(args.testId && { testId: args.testId }),
+          ...(args.method && { method: args.method }),
+          ...(args.statusCode && { statusCode: args.statusCode }),
+          ...(args.checkRate && { checkRate: args.checkRate }),
+          ...(args.tags && { tags: args.tags }),
         },
       };
 
