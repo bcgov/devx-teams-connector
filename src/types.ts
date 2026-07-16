@@ -20,7 +20,7 @@ export interface MentionEntity {
 export interface GenericTemplateData {
   title: string;
   body?: string;
-  severity?: 'critical' | 'warning' | 'info' | 'success';
+  severity?: 'critical' | 'warning' | 'info' | 'success' | 'error' | 'debug' | 'unknown' | 'trace';
   url?: string;
   urlLabel?: string;
   source?: string;

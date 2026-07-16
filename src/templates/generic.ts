@@ -3,7 +3,16 @@ import { z } from 'zod';
 import type { AdaptiveCard, GenericTemplateData } from '../types';
 import { createActivitySummary, createBaseCard, createCardFrame, toTextColor } from './shared';
 
-const GenericSeveritySchema = z.enum(['critical', 'warning', 'info', 'success']);
+const GenericSeveritySchema = z.enum([
+  'critical',
+  'warning',
+  'info',
+  'success',
+  'error',
+  'debug',
+  'unknown',
+  'trace',
+]);
 
 export const GenericTemplateDataSchema = z.object({
   title: z.string().min(1).max(200),
@@ -14,11 +23,18 @@ export const GenericTemplateDataSchema = z.object({
   source: z.string().min(1).optional(),
 });
 
-const severityStyles: Record<NonNullable<GenericTemplateData['severity']>, 'attention' | 'warning' | 'accent' | 'good'> = {
+const severityStyles: Record<
+  NonNullable<GenericTemplateData['severity']>,
+  'default' | 'attention' | 'warning' | 'accent' | 'good'
+> = {
   critical: 'attention',
   warning: 'warning',
   info: 'accent',
   success: 'good',
+  error: 'attention',
+  debug: 'accent',
+  unknown: 'default',
+  trace: 'default',
 };
 
 const severityLabels: Record<NonNullable<GenericTemplateData['severity']>, string> = {
@@ -26,6 +42,10 @@ const severityLabels: Record<NonNullable<GenericTemplateData['severity']>, strin
   warning: '⚠️ WARNING',
   info: 'INFO',
   success: '✅ SUCCESS',
+  error: '🔴 ERROR',
+  debug: 'DEBUG',
+  unknown: 'UNKNOWN',
+  trace: 'TRACE',
 };
 
 export function summarizeGenericTemplate(data: GenericTemplateData): string {

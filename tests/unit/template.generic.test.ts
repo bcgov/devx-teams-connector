@@ -34,11 +34,32 @@ describe('renderGenericTemplate', () => {
   });
 
   it('renders card for each severity level', () => {
-    for (const severity of ['critical', 'warning', 'info', 'success'] as const) {
+    for (const severity of [
+      'critical',
+      'warning',
+      'info',
+      'success',
+      'error',
+      'debug',
+      'unknown',
+      'trace',
+    ] as const) {
       const card = renderGenericTemplate({ title: 'x', severity });
       expect(card.type).toBe('AdaptiveCard');
       expect(card.body.length).toBeGreaterThan(0);
     }
+  });
+
+  it.each([
+    ['error', '🔴 ERROR', 'Attention'],
+    ['debug', 'DEBUG', 'Accent'],
+    ['unknown', 'UNKNOWN', 'Default'],
+    ['trace', 'TRACE', 'Default'],
+  ] as const)('renders the %s severity label and color', (severity, label, color) => {
+    const card = renderGenericTemplate({ title: 'x', severity });
+    const items = getContentItems(card);
+
+    expect(items[0]).toMatchObject({ text: label, color });
   });
 
   it('defaults url label and severity when omitted', () => {

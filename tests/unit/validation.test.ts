@@ -31,7 +31,7 @@ describe('validateSendMessageRequest', () => {
           template: 'generic',
           data: {
             title: 'Maintenance',
-            severity: 'warning',
+            severity: 'error',
           },
         },
       },

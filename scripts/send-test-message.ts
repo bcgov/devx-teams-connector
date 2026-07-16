@@ -106,7 +106,7 @@ Options:
   Generic options:
   --title <string>                        Template title
   --body <string>                         Body text
-  --severity <level>                      generic: critical|warning|info|success
+  --severity <level>                      generic: critical|warning|info|success|error|debug|unknown|trace
   --url <url>                             Action URL
   --urlLabel <string>                     Action button label
   --source <string>                       Source system
@@ -385,7 +385,16 @@ function buildTemplateContent(args: Args): { kind: 'template'; template: Templat
   switch (args.template) {
     case 'generic': {
       const severity = args.severity
-        ? ensureValueInSet(args.severity, '--severity', ['critical', 'warning', 'info', 'success'])
+        ? ensureValueInSet(args.severity, '--severity', [
+            'critical',
+            'warning',
+            'info',
+            'success',
+            'error',
+            'debug',
+            'unknown',
+            'trace',
+          ])
         : 'info';
 
       return {
