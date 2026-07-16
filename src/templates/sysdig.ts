@@ -11,10 +11,15 @@ import {
   formatRelativeTimeOrIso,
 } from './shared';
 
+const SysdigStateSchema = z
+  .enum(['ACTIVE', 'OK', 'active', 'ok'])
+  .transform((state): 'ACTIVE' | 'OK' => state.toUpperCase() as 'ACTIVE' | 'OK');
+
 export const SysdigTemplateDataSchema = z.object({
   severity: z.number().int().min(0).max(7), // alert.severity (0=critical, 1=high, 2-3=medium, 4-5=low, 6-7=info)
   alertName: z.string().min(1).max(200), // alert.name
-  state: z.enum(['active', 'ok']).optional(), // alert.state
+  subject: z.string().min(1).max(500).optional(), // alert.subject
+  state: SysdigStateSchema.optional(), // state; legacy lowercase values are normalized
   scope: z.string().min(1).optional(), // alert.scope
   description: z.string().min(1).optional(), // alert.description
   timestamp: IsoTimestampSchema.optional(), // timestamp
@@ -48,13 +53,15 @@ const severityFactLabels: Record<SeverityLabel, string> = {
 };
 
 export function summarizeSysdigTemplate(data: SysdigTemplateData): string {
-  const state = data.state === 'ok' ? 'resolved' : 'alert';
+  const state = data.state ?? 'alert';
+  const title = data.subject ?? data.alertName;
 
-  return createActivitySummary([`Sysdig ${state}: ${data.alertName}`, data.description]);
+  return createActivitySummary([`Sysdig ${state}: ${title}`, data.description]);
 }
 
 export function renderSysdigTemplate(data: SysdigTemplateData): AdaptiveCard {
   const label = toSeverityLabel(data.severity);
+  const title = data.subject ?? data.alertName;
   const contentItems: Array<Record<string, unknown>> = [
     {
       type: 'ColumnSet',
@@ -91,7 +98,7 @@ export function renderSysdigTemplate(data: SysdigTemplateData): AdaptiveCard {
     },
     {
       type: 'TextBlock',
-      text: data.alertName,
+      text: title,
       weight: 'Bolder',
       size: 'Large',
       wrap: true,
@@ -111,6 +118,7 @@ export function renderSysdigTemplate(data: SysdigTemplateData): AdaptiveCard {
   }
 
   const factSet = createFactSet([
+    { title: 'State', value: data.state },
     { title: 'Scope', value: data.scope },
     { title: 'Severity', value: severityFactLabels[label] },
     {

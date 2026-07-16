@@ -231,6 +231,8 @@ describe('messages endpoint', () => {
           data: {
             severity: 1,
             alertName: 'CPU saturation',
+            subject: 'CPU saturation on prod-cluster is Triggered',
+            state: 'ACTIVE',
           },
         },
       },
@@ -243,7 +245,7 @@ describe('messages endpoint', () => {
     const payload = body.payload as Record<string, unknown>;
     const activity = payload.activity as Record<string, unknown>;
 
-    expect(activity.summary).toBe('Sysdig alert: CPU saturation');
+    expect(activity.summary).toBe('Sysdig ACTIVE: CPU saturation on prod-cluster is Triggered');
     expect(activity.text).toBeUndefined();
     expect(activity.textFormat).toBeUndefined();
     expect(Array.isArray(activity.attachments)).toBe(true);

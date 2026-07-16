@@ -73,6 +73,8 @@ describe('validateSendMessageRequest', () => {
           data: {
             severity: 1,
             alertName: 'CPU saturation',
+            subject: 'CPU saturation on prod-cluster is Triggered',
+            state: 'ACTIVE',
             timestamp: '2026-02-22T12:00:00Z',
           },
         },
@@ -167,6 +169,32 @@ describe('validateSendMessageRequest', () => {
     };
 
     expect(() => validateSendMessageRequest(payload)).toThrow(ConnectorError);
+  });
+
+  it.each([
+    ['active', 'ACTIVE'],
+    ['ok', 'OK'],
+  ] as const)('accepts and normalizes legacy Sysdig state %s', (state, expected) => {
+    const payload = {
+      target,
+      content: {
+        kind: 'template',
+        template: 'sysdig',
+        data: {
+          severity: 1,
+          alertName: 'CPU saturation',
+          state,
+        },
+      },
+    };
+
+    const result = validateSendMessageRequest(payload);
+
+    expect(result.content.kind).toBe('template');
+    if (result.content.kind !== 'template' || result.content.template !== 'sysdig') {
+      throw new Error('Expected Sysdig template content');
+    }
+    expect(result.content.data.state).toBe(expected);
   });
 
   it('accepts unknown fields and strips them from output', () => {

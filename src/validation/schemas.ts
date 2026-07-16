@@ -105,12 +105,18 @@ const MentionTargetSchema = z.object({
   name: z.string().min(1).max(256),
 });
 
-export const SendMessageRequestSchema: z.ZodType<SendMessageRequest> = z.object({
+const SendMessageRequestObjectSchema = z.object({
   target: TargetSchema,
   content: ContentSchema,
   metadata: MetadataSchema,
   mentions: z.array(MentionTargetSchema).max(10).optional(),
 });
+
+export const SendMessageRequestSchema: z.ZodType<
+  SendMessageRequest,
+  z.ZodTypeDef,
+  z.input<typeof SendMessageRequestObjectSchema>
+> = SendMessageRequestObjectSchema;
 
 export type SendMessageRequestInput = z.infer<typeof SendMessageRequestSchema>;
 
