@@ -231,6 +231,8 @@ curl -X POST http://localhost:3000/api/v1/messages \
   }'
 ```
 
+Generic template severity accepts `critical`, `warning`, `info`, `success`, `error`, `debug`, `unknown`, and `trace`.
+
 ### Send GitHub PR template message
 
 ```bash
