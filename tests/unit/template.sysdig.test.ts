@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { renderSysdigTemplate } from '../../src/templates/sysdig';
+import { renderSysdigTemplate, summarizeSysdigTemplate } from '../../src/templates/sysdig';
 
 function getContentItems(card: { body: Array<Record<string, unknown>> }): Array<Record<string, unknown>> {
   const columns = (card.body[0]?.columns as Array<Record<string, unknown>>) ?? [];
@@ -9,6 +9,47 @@ function getContentItems(card: { body: Array<Record<string, unknown>> }): Array<
 }
 
 describe('renderSysdigTemplate', () => {
+  it('uses the notification subject as the title when present', () => {
+    const data = {
+      severity: 1,
+      alertName: 'CPU saturation',
+      subject: 'CPU saturation on prod-cluster is Resolved',
+      state: 'OK' as const,
+    };
+
+    const card = renderSysdigTemplate(data);
+    const title = getContentItems(card).find((item) => item.size === 'Large');
+
+    expect(title?.text).toBe(data.subject);
+    expect(summarizeSysdigTemplate(data)).toBe(`Sysdig OK: ${data.subject}`);
+  });
+
+  it('uses the alert name as the title when the subject is absent', () => {
+    const data = { severity: 1, alertName: 'CPU saturation' };
+
+    const card = renderSysdigTemplate(data);
+    const title = getContentItems(card).find((item) => item.size === 'Large');
+
+    expect(title?.text).toBe(data.alertName);
+    expect(summarizeSysdigTemplate(data)).toBe('Sysdig alert: CPU saturation');
+  });
+
+  it.each(['ACTIVE', 'OK'] as const)('renders the Sysdig %s state', (state) => {
+    const card = renderSysdigTemplate({
+      severity: 1,
+      alertName: 'CPU saturation',
+      state,
+    });
+
+    const items = getContentItems(card);
+    const factSetBlock = items.find((item) => item.type === 'FactSet');
+    const facts = factSetBlock?.facts as Array<Record<string, string>>;
+
+    expect(facts).toContainEqual({ title: 'State:', value: state });
+    expect(summarizeSysdigTemplate({ severity: 1, alertName: 'CPU saturation', state }))
+      .toBe(`Sysdig ${state}: CPU saturation`);
+  });
+
   it('maps each severity to the correct alert color', () => {
     const expectedColors: Array<[number, string]> = [
       [0, 'Attention'],  // critical

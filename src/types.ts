@@ -50,7 +50,8 @@ export interface GitHubWorkflowTemplateData {
 export interface SysdigTemplateData {
   severity: number;
   alertName: string;
-  state?: 'active' | 'ok';
+  subject?: string;
+  state?: 'ACTIVE' | 'OK';
   scope?: string;
   description?: string;
   timestamp?: string;

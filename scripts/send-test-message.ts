@@ -27,6 +27,7 @@ interface Args {
   workflow?: string;
   sha?: string;
   alertName?: string;
+  subject?: string;
   state?: string;
   scope?: string;
   description?: string;
@@ -132,8 +133,9 @@ Options:
 
   Sysdig options:
   --alertName <string>                    Alert name
+  --subject <string>                      Alert notification subject
   --severity <0-7>                        Numeric severity (0=critical, 1=high, 2-3=medium, 4-5=low, 6-7=info)
-  --state <active|ok>                     Alert state
+  --state <ACTIVE|OK>                     Alert state (lowercase also accepted)
   --scope <string>                        Alert scope
   --description <string>                  Alert description
   --timestamp <ISO8601>                   Alert timestamp
@@ -251,6 +253,10 @@ function parseArgs(): Args {
         break;
       case '--alertName':
         args.alertName = next;
+        i++;
+        break;
+      case '--subject':
+        args.subject = next;
         i++;
         break;
       case '--state':
@@ -446,7 +452,10 @@ function buildTemplateContent(args: Args): { kind: 'template'; template: Templat
         data: {
           severity: severityNum,
           alertName: requireArg(args.alertName, '--alertName'),
-          ...(args.state && { state: ensureValueInSet(args.state, '--state', ['active', 'ok']) }),
+          ...(args.subject && { subject: args.subject }),
+          ...(args.state && {
+            state: ensureValueInSet(args.state, '--state', ['ACTIVE', 'OK', 'active', 'ok']).toUpperCase(),
+          }),
           ...(args.scope && { scope: args.scope }),
           ...(args.description && { description: args.description }),
           ...(args.timestamp && { timestamp: args.timestamp }),

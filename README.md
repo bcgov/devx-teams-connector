@@ -199,7 +199,9 @@ curl -X POST http://localhost:3000/api/v1/messages/preview \
       "template": "sysdig",
       "data": {
         "severity": 1,
-        "alertName": "CPU saturation"
+        "alertName": "CPU saturation",
+        "subject": "CPU saturation on prod-cluster is Triggered",
+        "state": "ACTIVE"
       }
     }
   }'
@@ -300,6 +302,8 @@ curl -X POST http://localhost:3000/api/v1/messages \
       "data": {
         "severity": 1,
         "alertName": "CPU saturation",
+        "subject": "CPU saturation on prod-cluster is Triggered",
+        "state": "ACTIVE",
         "scope": "prod-cluster",
         "description": "Sustained CPU > 90% for 5 minutes",
         "timestamp": "2026-02-22T12:00:00Z",
@@ -308,6 +312,8 @@ curl -X POST http://localhost:3000/api/v1/messages \
     }
   }'
 ```
+
+`state` uses Sysdig's `ACTIVE` and `OK` values. Legacy lowercase `active` and `ok` values are also accepted and normalized to uppercase.
 
 ### Send uptime template message
 
