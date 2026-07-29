@@ -164,7 +164,7 @@ Options:
   --url <url>
 
 Environment Variables:
-  CONNECTOR_API_KEY                       API key for authentication
+  CONNECTOR_API_KEY                       Primary API key for authentication
   TEAM_ID                                 Target team ID (UUID)
   CHANNEL_ID                              Target channel ID (19:xxx@thread.tacv2)
   CONNECTOR_URL                           Connector URL (default: http://localhost:3000)

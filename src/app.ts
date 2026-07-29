@@ -31,6 +31,7 @@ export function createApp(options: AppOptions): Express {
     app.use(
       pinoHttp({
         logger: options.logger,
+        redact: ['req.headers.authorization'],
         autoLogging: true,
         genReqId: (req) => req.headers['x-request-id'] ?? randomUUID(),
       }),
@@ -47,7 +48,7 @@ export function createApp(options: AppOptions): Express {
     standardHeaders: 'draft-7',
     legacyHeaders: false,
   }));
-  apiRouter.use(apiKeyAuth(options.config.apiKey));
+  apiRouter.use(apiKeyAuth(options.config.apiKeys));
   apiRouter.use(rateLimit({
     windowMs: 60_000,
     limit: 300,

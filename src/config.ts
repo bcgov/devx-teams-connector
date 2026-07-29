@@ -2,7 +2,10 @@ import dotenv from 'dotenv';
 
 export interface Config {
   port: number;
-  apiKey: string;
+  apiKeys: {
+    primary: string;
+    legacy?: string;
+  };
   botId: string;
   botSecret: string;
   botServiceUrl: string;
@@ -48,6 +51,24 @@ function getRequiredEnv(env: NodeJS.ProcessEnv, key: string): string {
   return normalized;
 }
 
+function getOptionalEnv(env: NodeJS.ProcessEnv, key: string): string | undefined {
+  const value = env[key];
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const normalized = normalizeEnvValue(value);
+  return normalized || undefined;
+}
+
+function validateApiKey(apiKey: string, key: string): void {
+  if (apiKey.length < 32) {
+    throw new Error(
+      `${key} must be at least 32 characters (got ${apiKey.length}). Use a strong, randomly generated secret.`,
+    );
+  }
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (env === process.env) dotenv.config();
   const portRaw = env.PORT ?? '3000';
@@ -57,16 +78,23 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     throw new Error(`Invalid PORT value: ${portRaw}`);
   }
 
-  const apiKey = getRequiredEnv(env, 'CONNECTOR_API_KEY');
-  if (apiKey.length < 32) {
-    throw new Error(
-      `CONNECTOR_API_KEY must be at least 32 characters (got ${apiKey.length}). Use a strong, randomly generated secret.`,
-    );
+  const primaryApiKey = getRequiredEnv(env, 'CONNECTOR_API_KEY');
+  validateApiKey(primaryApiKey, 'CONNECTOR_API_KEY');
+
+  const legacyApiKey = getOptionalEnv(env, 'CONNECTOR_API_KEY_LEGACY');
+  if (legacyApiKey) {
+    validateApiKey(legacyApiKey, 'CONNECTOR_API_KEY_LEGACY');
+    if (legacyApiKey === primaryApiKey) {
+      throw new Error('CONNECTOR_API_KEY_LEGACY must differ from the primary API key.');
+    }
   }
 
   return {
     port,
-    apiKey,
+    apiKeys: {
+      primary: primaryApiKey,
+      ...(legacyApiKey && { legacy: legacyApiKey }),
+    },
     botId: getRequiredEnv(env, 'BOT_ID'),
     botSecret: getRequiredEnv(env, 'BOT_SECRET'),
     botServiceUrl: normalizeEnvValue(env.BOT_SERVICE_URL ?? 'https://smba.trafficmanager.net/teams'),

@@ -9,12 +9,13 @@ import { invokeApp } from './httpHarness';
 describe('health endpoint', () => {
   const config: Config = {
     port: 3000,
-    apiKey: 'test-api-key',
+    apiKeys: { primary: 'test-api-key' },
     botId: 'bot-id',
     botSecret: 'bot-secret',
     botServiceUrl: 'https://smba.trafficmanager.net/teams',
     tokenTenant: 'botframework.com',
     logLevel: 'silent',
+    allowCardPassthrough: false,
   };
 
   it('returns ok status', async () => {
