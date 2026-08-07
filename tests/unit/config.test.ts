@@ -80,6 +80,19 @@ describe('loadConfig', () => {
     });
   });
 
+  it('treats a blank legacy key as unset', () => {
+    const config = loadConfig({
+      CONNECTOR_API_KEY: 'primary-api-key-that-is-at-least-32-characters',
+      CONNECTOR_API_KEY_LEGACY: '',
+      BOT_ID: 'bot-id',
+      BOT_SECRET: 'bot-secret',
+    });
+
+    expect(config.apiKeys).toEqual({
+      primary: 'primary-api-key-that-is-at-least-32-characters',
+    });
+  });
+
   it('rejects a legacy key shorter than 32 characters', () => {
     expect(() =>
       loadConfig({

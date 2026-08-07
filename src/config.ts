@@ -1,5 +1,11 @@
 import dotenv from 'dotenv';
 
+const BOT_ID_ENV = 'BOT_ID';
+const BOT_SECRET_ENV = 'BOT_SECRET';
+const API_KEY_ENV = 'CONNECTOR_API_KEY';
+const API_KEY_LEGACY_ENV = 'CONNECTOR_API_KEY_LEGACY';
+const ALLOW_CARD_PASSTHROUGH_ENV = 'ALLOW_CARD_PASSTHROUGH';
+
 export interface Config {
   port: number;
   apiKeys: {
@@ -78,14 +84,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     throw new Error(`Invalid PORT value: ${portRaw}`);
   }
 
-  const primaryApiKey = getRequiredEnv(env, 'CONNECTOR_API_KEY');
-  validateApiKey(primaryApiKey, 'CONNECTOR_API_KEY');
+  const primaryApiKey = getRequiredEnv(env, API_KEY_ENV);
+  validateApiKey(primaryApiKey, API_KEY_ENV);
 
-  const legacyApiKey = getOptionalEnv(env, 'CONNECTOR_API_KEY_LEGACY');
+  const legacyApiKey = getOptionalEnv(env, API_KEY_LEGACY_ENV);
   if (legacyApiKey) {
-    validateApiKey(legacyApiKey, 'CONNECTOR_API_KEY_LEGACY');
+    validateApiKey(legacyApiKey, API_KEY_LEGACY_ENV);
     if (legacyApiKey === primaryApiKey) {
-      throw new Error('CONNECTOR_API_KEY_LEGACY must differ from the primary API key.');
+      throw new Error(`${API_KEY_LEGACY_ENV} must differ from the primary API key.`);
     }
   }
 
@@ -95,11 +101,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
       primary: primaryApiKey,
       ...(legacyApiKey && { legacy: legacyApiKey }),
     },
-    botId: getRequiredEnv(env, 'BOT_ID'),
-    botSecret: getRequiredEnv(env, 'BOT_SECRET'),
+    botId: getRequiredEnv(env, BOT_ID_ENV),
+    botSecret: getRequiredEnv(env, BOT_SECRET_ENV),
     botServiceUrl: normalizeEnvValue(env.BOT_SERVICE_URL ?? 'https://smba.trafficmanager.net/teams'),
     tokenTenant: normalizeEnvValue(env.BOT_TOKEN_TENANT ?? env.TENANT_ID ?? 'botframework.com'),
     logLevel: normalizeEnvValue(env.LOG_LEVEL ?? 'info'),
-    allowCardPassthrough: getBooleanEnv(env, 'ALLOW_CARD_PASSTHROUGH'),
+    allowCardPassthrough: getBooleanEnv(env, ALLOW_CARD_PASSTHROUGH_ENV),
   };
 }
