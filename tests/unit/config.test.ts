@@ -12,7 +12,9 @@ describe('loadConfig', () => {
     });
 
     expect(config.port).toBe(3000);
-    expect(config.apiKey).toBe('a-valid-api-key-that-is-at-least-32-characters');
+    expect(config.apiKeys).toEqual({
+      primary: 'a-valid-api-key-that-is-at-least-32-characters',
+    });
     expect(config.botServiceUrl).toBe('https://smba.trafficmanager.net/teams');
     expect(config.tokenTenant).toBe('botframework.com');
     expect(config.logLevel).toBe('info');
@@ -45,7 +47,7 @@ describe('loadConfig', () => {
       LOG_LEVEL: '"debug"',
     });
 
-    expect(config.apiKey).toBe('a-valid-quoted-key-that-is-at-least-32-chars');
+    expect(config.apiKeys.primary).toBe('a-valid-quoted-key-that-is-at-least-32-chars');
     expect(config.botId).toBe('bot-id');
     expect(config.botSecret).toBe('bot-secret');
     expect(config.tokenTenant).toBe('my-tenant-id');
@@ -62,5 +64,56 @@ describe('loadConfig', () => {
         BOT_SECRET: 'bot-secret',
       }),
     ).toThrow(/CONNECTOR_API_KEY must be at least 32 characters/);
+  });
+
+  it('loads primary and legacy keys for an overlap window', () => {
+    const config = loadConfig({
+      CONNECTOR_API_KEY: 'primary-api-key-that-is-at-least-32-characters',
+      CONNECTOR_API_KEY_LEGACY: 'legacy-api-key-that-is-at-least-32-characters',
+      BOT_ID: 'bot-id',
+      BOT_SECRET: 'bot-secret',
+    });
+
+    expect(config.apiKeys).toEqual({
+      primary: 'primary-api-key-that-is-at-least-32-characters',
+      legacy: 'legacy-api-key-that-is-at-least-32-characters',
+    });
+  });
+
+  it('treats a blank legacy key as unset', () => {
+    const config = loadConfig({
+      CONNECTOR_API_KEY: 'primary-api-key-that-is-at-least-32-characters',
+      CONNECTOR_API_KEY_LEGACY: '',
+      BOT_ID: 'bot-id',
+      BOT_SECRET: 'bot-secret',
+    });
+
+    expect(config.apiKeys).toEqual({
+      primary: 'primary-api-key-that-is-at-least-32-characters',
+    });
+  });
+
+  it('rejects a legacy key shorter than 32 characters', () => {
+    expect(() =>
+      loadConfig({
+        CONNECTOR_API_KEY: 'primary-api-key-that-is-at-least-32-characters',
+        CONNECTOR_API_KEY_LEGACY: 'too-short',
+        BOT_ID: 'bot-id',
+        BOT_SECRET: 'bot-secret',
+      }),
+    ).toThrow(/CONNECTOR_API_KEY_LEGACY must be at least 32 characters/);
+  });
+
+  it('rejects identical primary and legacy keys', () => {
+    const apiKey = 'same-api-key-that-is-at-least-32-characters';
+
+    expect(() =>
+      loadConfig({
+        CONNECTOR_API_KEY: apiKey,
+        CONNECTOR_API_KEY_LEGACY: apiKey,
+        BOT_ID: 'bot-id',
+        BOT_SECRET: 'bot-secret',
+      }),
+    ).toThrow(/CONNECTOR_API_KEY_LEGACY must differ/);
   });
 });

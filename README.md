@@ -39,6 +39,7 @@ Required values:
 
 Optional/defaulted:
 
+- `CONNECTOR_API_KEY_LEGACY` (temporarily accepts the retiring key during rotation)
 - `PORT` (default `3000`)
 - `BOT_SERVICE_URL` (default `https://smba.trafficmanager.net/teams`)
 - `TENANT_ID` or `BOT_TOKEN_TENANT` (default `botframework.com`; set this to your tenant ID for single-tenant bots)
@@ -475,7 +476,7 @@ Script env vars:
 ## Troubleshooting
 
 - `AUTH_FAILED`: Check `Authorization` header and API key value.
-- Docker-specific `AUTH_FAILED`: If your `.env` values are quoted (for example `CONNECTOR_API_KEY="abc123"`), restart with the latest build of this service (it now normalizes quoted env values for Docker `--env-file` compatibility).
+- Docker-specific `AUTH_FAILED`: If your `.env` values are quoted (for example `CONNECTOR_API_KEY="abc123"`), restart with the latest build of this service (it normalizes quoted env values for Docker `--env-file` compatibility).
 - `BACKEND_UNAVAILABLE`: Verify bot credentials and outbound access to Microsoft token/Bot Framework endpoints.
 - `Authorization has been denied for this request`: Use the correct token tenant for your bot registration (`TENANT_ID` for single-tenant bots, or default `botframework.com` for multi-tenant bots).
 - `DELIVERY_FAILED`: Confirm the Teams app bot is installed in the target team/channel and channel ID is correct.

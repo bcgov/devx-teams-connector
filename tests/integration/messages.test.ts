@@ -1,9 +1,10 @@
+import { Writable } from 'node:stream';
 import pino from 'pino';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createApp } from '../../src/app';
 import type { DeliveryAdapter } from '../../src/adapters/types';
-import type { Config } from '../../src/config';
+import { loadConfig, type Config } from '../../src/config';
 import type { TemplateName } from '../../src/types';
 import { invokeApp } from './httpHarness';
 
@@ -19,7 +20,10 @@ const authHeaders = {
 describe('messages endpoint', () => {
   const config: Config = {
     port: 3000,
-    apiKey: 'test-api-key',
+    apiKeys: {
+      primary: 'test-api-key',
+      legacy: 'legacy-test-api-key',
+    },
     botId: 'bot-id',
     botSecret: 'bot-secret',
     botServiceUrl: 'https://smba.trafficmanager.net/teams',
@@ -76,6 +80,115 @@ describe('messages endpoint', () => {
     expect(body.status).toBe('delivered');
     expect(typeof body.id).toBe('string');
     expect(typeof body.timestamp).toBe('string');
+  });
+
+  it('accepts the legacy api key during a rotation', async () => {
+    const app = createTestApp();
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages',
+      headers: {
+        authorization: 'Bearer legacy-test-api-key',
+      },
+      body: {
+        target,
+        content: {
+          kind: 'text',
+          text: 'sent during key rotation',
+        },
+      },
+    });
+
+    expect(response.status).toBe(201);
+  });
+
+  it('rejects a blank bearer token when the legacy key is blank', async () => {
+    const blankLegacyConfig = loadConfig({
+      CONNECTOR_API_KEY: 'primary-api-key-that-is-at-least-32-characters',
+      CONNECTOR_API_KEY_LEGACY: '',
+      BOT_ID: 'bot-id',
+      BOT_SECRET: 'bot-secret',
+      LOG_LEVEL: 'silent',
+    });
+    const app = createApp({
+      config: blankLegacyConfig,
+      adapter,
+      logger: pino({ enabled: false }),
+      enableHttpLogging: false,
+    });
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages',
+      headers: {
+        authorization: 'Bearer ',
+      },
+      body: {},
+    });
+
+    expect(response.status).toBe(401);
+    expect((response.body as Record<string, unknown>).code).toBe('AUTH_FAILED');
+    expect(adapter.send).not.toHaveBeenCalled();
+  });
+
+  it('redacts api keys from HTTP logs without identifying the matched slot', async () => {
+    let logOutput = '';
+    const logStream = new Writable({
+      write(chunk, _encoding, callback) {
+        logOutput += chunk.toString();
+        callback();
+      },
+    });
+    const app = createApp({
+      config,
+      adapter,
+      logger: pino({ level: 'info' }, logStream),
+    });
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages',
+      headers: {
+        authorization: 'Bearer legacy-test-api-key',
+      },
+      body: {
+        target,
+        content: {
+          kind: 'text',
+          text: 'check safe authentication logging',
+        },
+      },
+    });
+
+    expect(response.status).toBe(201);
+    expect(logOutput).not.toContain('apiKeySlot');
+    expect(logOutput).not.toContain('legacy-test-api-key');
+    expect(logOutput).not.toContain('test-api-key');
+  });
+
+  it('rejects the legacy api key after it is removed from configuration', async () => {
+    const app = createApp({
+      config: {
+        ...config,
+        apiKeys: { primary: config.apiKeys.primary },
+      },
+      adapter,
+      logger: pino({ enabled: false }),
+      enableHttpLogging: false,
+    });
+
+    const response = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/messages',
+      headers: {
+        authorization: 'Bearer legacy-test-api-key',
+      },
+      body: {},
+    });
+
+    expect(response.status).toBe(401);
+    expect((response.body as Record<string, unknown>).code).toBe('AUTH_FAILED');
   });
 
   it('returns preview payload without posting to adapter for text requests', async () => {
