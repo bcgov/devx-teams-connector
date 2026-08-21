@@ -15,9 +15,11 @@ const TextContentSchema = z.object({
   text: boundedString(10000),
 });
 
+// Not truncated: cutting raw markup can split a tag, attribute, or entity and
+// produce malformed XML that Teams rejects at delivery time.
 const HtmlContentSchema = z.object({
   kind: z.literal('html'),
-  text: boundedString(10000),
+  text: z.string().min(1).max(10000),
 });
 
 const GenericTemplateContentSchema = z.object({

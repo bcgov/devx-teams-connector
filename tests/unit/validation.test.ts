@@ -296,6 +296,18 @@ describe('validateSendMessageRequest normalization', () => {
     expect(text.endsWith('...')).toBe(true);
   });
 
+  it('rejects oversized html instead of truncating it', () => {
+    const payload = {
+      target,
+      content: {
+        kind: 'html',
+        text: `<p>${'a'.repeat(10050)}</p>`,
+      },
+    };
+
+    expect(() => validateSendMessageRequest(payload)).toThrow(ConnectorError);
+  });
+
   it('truncates oversized template fields instead of rejecting them', () => {
     const payload = {
       target,
