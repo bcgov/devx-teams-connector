@@ -13,7 +13,7 @@ import {
 export const StatusCakeTemplateDataSchema = z.object({
   status: z.enum(["up", "down"]), // POST['Status']
   testName: z.string().min(1), // POST['Name']
-  websiteUrl: z.string().url().optional(), // POST['URL']
+  websiteUrl: z.string().min(1).optional(), // POST['URL'] - may be a bare host, not a full URL
   statusCode: z.string().optional(), // POST['StatusCode']
   ip: z.string().optional(), // POST['IP']
   tags: z.string().optional(), // POST['Tags']
@@ -26,16 +26,6 @@ const statusBadges: Record<StatusCakeTemplateData["status"], string> = {
   up: "🟢 UP",
   down: "🔴 DOWN",
 };
-
-function toHostname(value: string | undefined): string | undefined {
-  if (!value) return undefined;
-
-  try {
-    return new URL(value).hostname;
-  } catch {
-    return undefined;
-  }
-}
 
 export function summarizeStatusCakeTemplate(
   data: StatusCakeTemplateData,
@@ -93,7 +83,7 @@ export function renderStatusCakeTemplate(
   ];
 
   const factSet = createFactSet([
-    { title: "Website", value: toHostname(data.websiteUrl) },
+    { title: "Website", value: data.websiteUrl },
     { title: "Method", value: data.method },
     { title: "Status code", value: data.statusCode },
     { title: "Check rate", value: data.checkRate },

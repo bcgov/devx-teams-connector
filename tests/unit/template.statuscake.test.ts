@@ -52,13 +52,30 @@ describe("renderStatusCakeTemplate", () => {
 
     expect(facts).toContainEqual({
       title: "Website:",
-      value: "developer.gov.bc.ca",
+      value: "https://developer.gov.bc.ca/payments-api",
     });
     expect(facts).toContainEqual({ title: "Check rate:", value: "60" });
     expect(facts).toContainEqual({ title: "Method:", value: "Website" });
     expect(facts).toContainEqual({ title: "Status code:", value: "403" });
     expect(facts).toContainEqual({ title: "Tags:", value: "platform" });
     expect(facts).toContainEqual({ title: "IP:", value: "127.0.0.1" });
+  });
+
+  it("displays website values that omit a scheme", () => {
+    const card = renderStatusCakeTemplate({
+      status: "down",
+      testName: "payments-api",
+      websiteUrl: "developer.gov.bc.ca/payments-api",
+    });
+
+    const items = getContentItems(card);
+    const factSetBlock = items.find((item) => item.type === "FactSet");
+    const facts = factSetBlock?.facts as Array<Record<string, string>>;
+
+    expect(facts).toContainEqual({
+      title: "Website:",
+      value: "developer.gov.bc.ca/payments-api",
+    });
   });
 
   it("omits fact set when optional values are missing", () => {
