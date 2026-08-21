@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { renderStatusCakeTemplate } from "../../src/templates/statuscake";
+import {
+  renderStatusCakeTemplate,
+  StatusCakeTemplateDataSchema,
+} from "../../src/templates/statuscake";
 
 function getContentItems(card: {
   body: Array<Record<string, unknown>>;
@@ -61,12 +64,17 @@ describe("renderStatusCakeTemplate", () => {
     expect(facts).toContainEqual({ title: "IP:", value: "127.0.0.1" });
   });
 
-  it("displays website values that omit a scheme", () => {
-    const card = renderStatusCakeTemplate({
+  it("accepts and displays website values that omit a scheme", () => {
+    // Parsed through the schema so a reintroduced .url() check fails here.
+    const data = StatusCakeTemplateDataSchema.parse({
       status: "down",
       testName: "payments-api",
       websiteUrl: "developer.gov.bc.ca/payments-api",
     });
+
+    expect(data.websiteUrl).toBe("developer.gov.bc.ca/payments-api");
+
+    const card = renderStatusCakeTemplate(data);
 
     const items = getContentItems(card);
     const factSetBlock = items.find((item) => item.type === "FactSet");
