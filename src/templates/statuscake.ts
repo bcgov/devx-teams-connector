@@ -7,19 +7,20 @@ import {
   createCardFrame,
   createFactSet,
   createSectionSeparator,
+  optionalField,
 } from "./shared";
 
 // https://www.statuscake.com/kb/knowledge-base/how-to-use-the-web-hook-url/
 export const StatusCakeTemplateDataSchema = z.object({
   status: z.enum(["up", "down"]), // POST['Status']
   testName: z.string().min(1), // POST['Name']
-  websiteUrl: z.string().url().optional(), // POST['URL']
-  statusCode: z.string().optional(), // POST['StatusCode']
-  ip: z.string().optional(), // POST['IP']
-  tags: z.string().optional(), // POST['Tags']
-  checkRate: z.string().optional(), // POST['Checkrate']
-  testId: z.string().optional(), // body.TestID from n8n payload
-  method: z.string().optional(), // body.Method from n8n payload
+  websiteUrl: optionalField(z.string().url()), // POST['URL']
+  statusCode: optionalField(z.string()), // POST['StatusCode']
+  ip: optionalField(z.string()), // POST['IP']
+  tags: optionalField(z.string()), // POST['Tags']
+  checkRate: optionalField(z.string()), // POST['Checkrate']
+  testId: optionalField(z.string()), // body.TestID from n8n payload
+  method: optionalField(z.string()), // body.Method from n8n payload
 });
 
 const statusBadges: Record<StatusCakeTemplateData["status"], string> = {

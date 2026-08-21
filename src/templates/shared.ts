@@ -19,6 +19,31 @@ export const IsoTimestampSchema = z.union([
   z.string().datetime(),
 ]);
 
+function blankToUndefined(value: unknown): unknown {
+  return typeof value === 'string' && value.trim().length === 0 ? undefined : value;
+}
+
+function clampToMaxLength(value: unknown, maxLength: number): unknown {
+  return typeof value === 'string' ? truncateText(value, maxLength) : value;
+}
+
+// Oversized input is trimmed to the limit rather than rejected.
+export function boundedString(maxLength: number) {
+  return z.preprocess(
+    (value) => clampToMaxLength(value, maxLength),
+    z.string().min(1).max(maxLength),
+  );
+}
+
+// Blank input on an optional field means "unset", not "invalid".
+export function optionalField<T extends z.ZodTypeAny>(schema: T) {
+  return z.preprocess(blankToUndefined, schema.optional());
+}
+
+export function optionalBoundedString(maxLength: number) {
+  return optionalField(boundedString(maxLength));
+}
+
 export function toTextColor(style: AdaptiveContainerStyle): AdaptiveTextColor {
   switch (style) {
     case 'good':

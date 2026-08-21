@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { ConnectorError } from '../errors';
 import { templateDataSchemas } from '../templates';
+import { boundedString, truncateText } from '../templates/shared';
 import type { SendMessageRequest } from '../types';
 
 const TargetSchema = z.object({
@@ -11,12 +12,12 @@ const TargetSchema = z.object({
 
 const TextContentSchema = z.object({
   kind: z.literal('text'),
-  text: z.string().min(1).max(10000),
+  text: boundedString(10000),
 });
 
 const HtmlContentSchema = z.object({
   kind: z.literal('html'),
-  text: z.string().min(1).max(10000),
+  text: boundedString(10000),
 });
 
 const GenericTemplateContentSchema = z.object({
@@ -96,13 +97,25 @@ const ContentSchema = z.union([
   CardContentSchema,
 ]);
 
-const MetadataSchema = z.record(z.string().min(1).max(64), z.string().max(256))
+const MetadataSchema = z
+  .preprocess((value) => {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      return value;
+    }
+
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, entry]) => [
+        key,
+        typeof entry === 'string' ? truncateText(entry, 256) : entry,
+      ]),
+    );
+  }, z.record(z.string().min(1).max(64), z.string().max(256)))
   .refine((obj) => Object.keys(obj).length <= 20, { message: 'metadata: too many keys (max 20)' })
   .optional();
 
 const MentionTargetSchema = z.object({
   id: z.string().min(1).max(512),
-  name: z.string().min(1).max(256),
+  name: boundedString(256),
 });
 
 const SendMessageRequestObjectSchema = z.object({

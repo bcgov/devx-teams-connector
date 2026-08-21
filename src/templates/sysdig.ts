@@ -3,12 +3,15 @@ import { z } from 'zod';
 import type { AdaptiveCard, SysdigTemplateData } from '../types';
 import {
   IsoTimestampSchema,
+  boundedString,
   createActivitySummary,
   createBaseCard,
   createCardFrame,
   createFactSet,
   createSectionSeparator,
   formatRelativeTimeOrIso,
+  optionalBoundedString,
+  optionalField,
 } from './shared';
 
 const SysdigStateSchema = z
@@ -17,13 +20,13 @@ const SysdigStateSchema = z
 
 export const SysdigTemplateDataSchema = z.object({
   severity: z.number().int().min(0).max(7), // alert.severity (0=critical, 1=high, 2-3=medium, 4-5=low, 6-7=info)
-  alertName: z.string().min(1).max(200), // alert.name
-  subject: z.string().min(1).max(500).optional(), // alert.subject
-  state: SysdigStateSchema.optional(), // state; legacy lowercase values are normalized
-  scope: z.string().min(1).optional(), // alert.scope
-  description: z.string().min(1).optional(), // alert.description
-  timestamp: IsoTimestampSchema.optional(), // timestamp
-  url: z.string().url().optional(), // alert.editUrl
+  alertName: boundedString(200), // alert.name
+  subject: optionalBoundedString(500), // alert.subject
+  state: optionalField(SysdigStateSchema), // state; legacy lowercase values are normalized
+  scope: optionalField(z.string()), // alert.scope
+  description: optionalField(z.string()), // alert.description
+  timestamp: optionalField(IsoTimestampSchema), // timestamp
+  url: optionalField(z.string().url()), // alert.editUrl
 });
 
 type SeverityLabel = 'critical' | 'high' | 'medium' | 'low' | 'info';
