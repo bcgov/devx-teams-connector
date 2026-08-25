@@ -126,10 +126,10 @@ export function truncateText(value: string, maxLength: number): string {
   }
 
   let sliceEnd = Math.max(0, maxLength - 3);
-  const lastCode = sliceEnd > 0 ? value.charCodeAt(sliceEnd - 1) : 0;
+  const lastCodePoint = sliceEnd > 0 ? (value.codePointAt(sliceEnd - 1) ?? 0) : 0;
 
   // Dropping a lone high surrogate keeps the output from ending mid-code-point.
-  if (lastCode >= 0xd800 && lastCode <= 0xdbff) {
+  if (lastCodePoint > 0xffff || (lastCodePoint >= 0xd800 && lastCodePoint <= 0xdbff)) {
     sliceEnd -= 1;
   }
 

@@ -21,6 +21,13 @@ describe('truncateText', () => {
     expect(hasLoneSurrogate(result)).toBe(false);
   });
 
+  it('drops an unpaired high surrogate at the boundary', () => {
+    const result = truncateText('abcde\uD83Dfghij', 9);
+
+    expect(result).toBe('abcde...');
+    expect(hasLoneSurrogate(result)).toBe(false);
+  });
+
   it('never emits a lone surrogate for any boundary', () => {
     const value = '😀'.repeat(20);
 
