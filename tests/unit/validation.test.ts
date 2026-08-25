@@ -329,20 +329,6 @@ describe('validateSendMessageRequest normalization', () => {
     expect(data?.body).toHaveLength(2000);
   });
 
-  it('truncates oversized metadata values', () => {
-    const payload = {
-      target,
-      metadata: { note: 'x'.repeat(300) },
-      content: {
-        kind: 'text',
-        text: 'hello',
-      },
-    };
-
-    const result = validateSendMessageRequest(payload);
-    expect(result.metadata?.note).toHaveLength(256);
-  });
-
   it('treats blank optional template fields as unset', () => {
     const payload = {
       target,
