@@ -125,7 +125,15 @@ export function truncateText(value: string, maxLength: number): string {
     return value;
   }
 
-  return `${value.slice(0, Math.max(0, maxLength - 3))}...`;
+  let sliceEnd = Math.max(0, maxLength - 3);
+  const lastCode = sliceEnd > 0 ? value.charCodeAt(sliceEnd - 1) : 0;
+
+  // Dropping a lone high surrogate keeps the output from ending mid-code-point.
+  if (lastCode >= 0xd800 && lastCode <= 0xdbff) {
+    sliceEnd -= 1;
+  }
+
+  return `${value.slice(0, sliceEnd)}...`;
 }
 
 // Join non-empty fields into one line for activity summary
