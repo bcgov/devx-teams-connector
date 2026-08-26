@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { ConnectorError } from '../errors';
 import { templateDataSchemas } from '../templates';
+import { boundedString } from '../templates/shared';
 import type { SendMessageRequest } from '../types';
 
 const TargetSchema = z.object({
@@ -11,9 +12,11 @@ const TargetSchema = z.object({
 
 const TextContentSchema = z.object({
   kind: z.literal('text'),
-  text: z.string().min(1).max(10000),
+  text: boundedString(10000),
 });
 
+// Not truncated: cutting raw markup can split a tag, attribute, or entity and
+// produce malformed XML that Teams rejects at delivery time.
 const HtmlContentSchema = z.object({
   kind: z.literal('html'),
   text: z.string().min(1).max(10000),
