@@ -133,7 +133,7 @@ export function truncateText(value: string, maxLength: number): string {
     sliceEnd -= 1;
   }
 
-  return `${value.slice(0, sliceEnd)}...`;
+  return `${value.slice(0, sliceEnd)}\u2026`;
 }
 
 // Join non-empty fields into one line for activity summary
