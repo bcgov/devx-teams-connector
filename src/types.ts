@@ -86,7 +86,7 @@ export interface ArgoCdTemplateData {
 }
 
 export interface StatusCakeTemplateData {
-  status: 'up' | 'down';
+  status: string;
   testName: string;
   websiteUrl?: string;
   checkRate?: string;

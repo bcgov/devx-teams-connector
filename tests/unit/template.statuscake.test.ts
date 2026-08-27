@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { renderStatusCakeTemplate } from "../../src/templates/statuscake";
+import {
+  renderStatusCakeTemplate,
+  StatusCakeTemplateDataSchema,
+  summarizeStatusCakeTemplate,
+} from "../../src/templates/statuscake";
 
 function getContentItems(card: {
   body: Array<Record<string, unknown>>;
@@ -12,25 +16,97 @@ function getContentItems(card: {
 }
 
 describe("renderStatusCakeTemplate", () => {
-  it("renders StatusCake action button for each status", () => {
+  it("renders uptime presentation and action button for each status", () => {
     for (const status of ["up", "down"] as const) {
       const card = renderStatusCakeTemplate({
         status,
         testName: "payments-api",
         websiteUrl: "https://developer.gov.bc.ca/payments-api",
         testId: "123456",
+        method: "Website",
       });
 
       const items = getContentItems(card);
+      const header = items[0] as Record<string, unknown>;
+      const columns = header.columns as Array<Record<string, unknown>>;
+      const statusItems = columns[0]?.items as Array<Record<string, unknown>>;
       const actionSet = items.find((item) => item.type === "ActionSet");
       const actions = actionSet?.actions as Array<Record<string, unknown>>;
 
+      expect(statusItems[0]?.text).toBe(status === "up" ? "🟢 UP" : "🔴 DOWN");
       expect(actions?.[0]).toEqual({
         type: "Action.OpenUrl",
         title: "Open StatusCake Alert",
         url: "https://app.statuscake.com/UptimeStatus.php?tid=123456",
       });
     }
+  });
+
+  it("renders Page Speed presentation and action URL", () => {
+    const card = renderStatusCakeTemplate({
+      status: "Alerted",
+      testName: "homepage performance",
+      websiteUrl: "https://developer.gov.bc.ca",
+      testId: "124262",
+      method: "Page speed",
+    });
+
+    const items = getContentItems(card);
+    const columns = items[0]?.columns as Array<Record<string, unknown>>;
+    const statusItems = columns[0]?.items as Array<Record<string, unknown>>;
+    const actionSet = items.find((item) => item.type === "ActionSet");
+    const actions = actionSet?.actions as Array<Record<string, unknown>>;
+
+    expect(statusItems[0]?.text).toBe("⚡ PAGE SPEED - ALERTED");
+    expect(actions?.[0]?.url).toBe(
+      "https://app.statuscake.com/SpeedMonitor.php?PSID=124262",
+    );
+  });
+
+  it("renders SSL presentation without requiring a test ID", () => {
+    const card = renderStatusCakeTemplate({
+      status: "Expiring",
+      testName: "developer.gov.bc.ca certificate",
+      websiteUrl: "https://developer.gov.bc.ca",
+      method: "SSL",
+    });
+
+    const items = getContentItems(card);
+    const columns = items[0]?.columns as Array<Record<string, unknown>>;
+    const statusItems = columns[0]?.items as Array<Record<string, unknown>>;
+
+    expect(statusItems[0]?.text).toBe("🔒 SSL - EXPIRING");
+    expect(items.some((item) => item.type === "ActionSet")).toBe(false);
+    expect(summarizeStatusCakeTemplate({
+      status: "Expired",
+      testName: "developer.gov.bc.ca certificate",
+      method: "SSL",
+    })).toContain("SSL on developer.gov.bc.ca certificate is EXPIRED");
+  });
+
+  it.each([undefined, "Domain"])(
+    "omits the badge for unsupported method %s",
+    (method) => {
+      const card = renderStatusCakeTemplate({
+        status: "Alerted",
+        testName: "domain expiry",
+        method,
+      });
+
+      const items = getContentItems(card);
+      const columns = items[0]?.columns as Array<Record<string, unknown>>;
+      const statusItems = columns[0]?.items as Array<Record<string, unknown>>;
+
+      expect(statusItems).toEqual([]);
+    },
+  );
+
+  it("accepts non-uptime statuses", () => {
+    expect(StatusCakeTemplateDataSchema.parse({
+      status: "Expiring",
+      testName: "developer.gov.bc.ca certificate",
+      method: "SSL",
+    }).status).toBe("Expiring");
   });
 
   it("renders StatusCake-specific fields in fact set", () => {
