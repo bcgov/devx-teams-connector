@@ -2,33 +2,35 @@ import { z } from 'zod';
 
 import type { AdaptiveCard, GitHubPrTemplateData, GitHubWorkflowTemplateData } from '../types';
 import {
+  boundedString,
   createActivitySummary,
   createBaseCard,
   createCardFrame,
   createFactSet,
   createSectionSeparator,
+  optionalField,
   truncateText,
 } from './shared';
 
 export const GitHubPrTemplateDataSchema = z.object({
   event: z.string().min(1), // action: "opened" | "closed"
-  title: z.string().min(1).max(200), // pull_request.title
+  title: boundedString(200), // pull_request.title
   repo: z.string().min(1), // repository.full_name
   author: z.string().min(1), // pull_request.user.login 
   url: z.string().url(), // pull_request.html_url
-  body: z.string().optional(), // pull_request.body
+  body: optionalField(z.string()), // pull_request.body
 });
 
 export const GitHubWorkflowTemplateDataSchema = z.object({
   event: z.string().min(1), // action: "completed" | "requested" | "in_progress"
-  conclusion: z.string().optional(), // workflow_run.conclusion: "success" | "failure" | "cancelled" | ...
-  workflow: z.string().min(1).max(200), // workflow_run.name
+  conclusion: optionalField(z.string()), // workflow_run.conclusion: "success" | "failure" | "cancelled" | ...
+  workflow: boundedString(200), // workflow_run.name
   repo: z.string().min(1), // repository.full_name
   branch: z.string().min(1), // workflow_run.head_branch
   author: z.string().min(1), // workflow_run.triggering_actor.login
   url: z.string().url(), // workflow_run.html_url
-  sha: z.string().min(1).optional(), // workflow_run.head_sha (short)
-  message: z.string().optional(), // workflow_run.head_commit.message
+  sha: optionalField(z.string()), // workflow_run.head_sha (short)
+  message: optionalField(z.string()), // workflow_run.head_commit.message
 });
 
 const eventBadges: Record<string, string> = {

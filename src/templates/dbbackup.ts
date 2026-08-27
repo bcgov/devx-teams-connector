@@ -7,6 +7,7 @@ import {
   createCardFrame,
   createFactSet,
   createSectionSeparator,
+  optionalField,
   toTextColor,
 } from './shared';
 
@@ -14,7 +15,7 @@ export const DbBackupTemplateDataSchema = z.object({
   status: z.enum(['info', 'warn', 'error']), // statusCode
   projectName: z.string().min(1), // projectName
   projectFriendlyName: z.string().min(1), // projectFriendlyName
-  message: z.string().min(1).optional(), // message
+  message: optionalField(z.string()), // message
 });
 
 const statusStyles: Record<DbBackupTemplateData['status'], 'good' | 'warning' | 'attention'> = {

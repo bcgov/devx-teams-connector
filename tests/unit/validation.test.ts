@@ -280,6 +280,126 @@ describe('validateSendMessageRequest', () => {
   });
 });
 
+describe('validateSendMessageRequest normalization', () => {
+  it('truncates oversized text instead of rejecting it', () => {
+    const payload = {
+      target,
+      content: {
+        kind: 'text',
+        text: 'a'.repeat(10050),
+      },
+    };
+
+    const result = validateSendMessageRequest(payload);
+    const text = result.content.kind === 'text' ? result.content.text : '';
+    expect(text).toHaveLength(10000);
+    expect(text.endsWith('\u2026')).toBe(true);
+  });
+
+  it('rejects oversized html instead of truncating it', () => {
+    const payload = {
+      target,
+      content: {
+        kind: 'html',
+        text: `<p>${'a'.repeat(10050)}</p>`,
+      },
+    };
+
+    expect(() => validateSendMessageRequest(payload)).toThrow(ConnectorError);
+  });
+
+  it('truncates oversized template fields instead of rejecting them', () => {
+    const payload = {
+      target,
+      content: {
+        kind: 'template',
+        template: 'generic',
+        data: {
+          title: 'T'.repeat(250),
+          body: 'B'.repeat(2100),
+        },
+      },
+    };
+
+    const result = validateSendMessageRequest(payload);
+    const data = result.content.kind === 'template' && result.content.template === 'generic'
+      ? result.content.data
+      : null;
+    expect(data?.title).toHaveLength(200);
+    expect(data?.body).toHaveLength(2000);
+  });
+
+  it('treats blank optional template fields as unset', () => {
+    const payload = {
+      target,
+      content: {
+        kind: 'template',
+        template: 'statuscake',
+        data: {
+          status: 'down',
+          testName: 'API health',
+          websiteUrl: '',
+          statusCode: '',
+          ip: '   ',
+          tags: '',
+        },
+      },
+    };
+
+    const result = validateSendMessageRequest(payload);
+    const data = result.content.kind === 'template' && result.content.template === 'statuscake'
+      ? result.content.data
+      : null;
+    expect(data?.websiteUrl).toBeUndefined();
+    expect(data?.statusCode).toBeUndefined();
+    expect(data?.ip).toBeUndefined();
+    expect(data?.tags).toBeUndefined();
+  });
+
+  it('treats blank optional timestamps and enums as unset', () => {
+    const payload = {
+      target,
+      content: {
+        kind: 'template',
+        template: 'argocd',
+        data: {
+          event: 'sync_failed',
+          application: 'checkout-api',
+          syncStatus: '',
+          timestamp: '',
+          message: '',
+          url: '',
+        },
+      },
+    };
+
+    const result = validateSendMessageRequest(payload);
+    const data = result.content.kind === 'template' && result.content.template === 'argocd'
+      ? result.content.data
+      : null;
+    expect(data?.syncStatus).toBeUndefined();
+    expect(data?.timestamp).toBeUndefined();
+    expect(data?.message).toBeUndefined();
+    expect(data?.url).toBeUndefined();
+  });
+
+  it('still rejects blank required fields', () => {
+    const payload = {
+      target,
+      content: {
+        kind: 'template',
+        template: 'statuscake',
+        data: {
+          status: 'down',
+          testName: '',
+        },
+      },
+    };
+
+    expect(() => validateSendMessageRequest(payload)).toThrow(ConnectorError);
+  });
+});
+
 describe('validateSendMessageRequest — card pass-through', () => {
   const minimalCard = {
     type: 'AdaptiveCard',

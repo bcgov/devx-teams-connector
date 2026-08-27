@@ -94,7 +94,7 @@ describe('renderGitHubPrTemplate', () => {
     );
     expect(bodyTextBlock).toBeDefined();
     expect((bodyTextBlock?.text as string).length).toBe(300);
-    expect(bodyTextBlock?.text).toBe(`${'x'.repeat(297)}...`);
+    expect(bodyTextBlock?.text).toBe(`${'x'.repeat(299)}\u2026`);
 
     // Find the fact set inside the header
     const factSetBlock = contentItems.find((item) => item.type === 'FactSet');
@@ -200,6 +200,6 @@ describe('renderGitHubWorkflowTemplate', () => {
     );
     expect(msgBlock).toBeDefined();
     expect((msgBlock?.text as string).length).toBe(300);
-    expect(msgBlock?.text).toBe(`${'x'.repeat(297)}...`);
+    expect(msgBlock?.text).toBe(`${'x'.repeat(299)}\u2026`);
   });
 });

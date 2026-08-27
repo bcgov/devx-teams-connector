@@ -3,26 +3,30 @@ import { z } from 'zod';
 import type { AdaptiveCard, ArgoCdTemplateData } from '../types';
 import {
   IsoTimestampSchema,
+  boundedString,
   createActivitySummary,
   createBaseCard,
   createCardFrame,
   createFactSet,
   createSectionSeparator,
   formatRelativeTimeOrIso,
+  optionalField,
   toTextColor,
 } from './shared';
 
 export const ArgoCdTemplateDataSchema = z.object({
   event: z.enum(['sync_succeeded', 'sync_failed', 'out_of_sync']),
-  application: z.string().min(1).max(200),
-  syncStatus: z.enum(['Synced', 'OutOfSync', 'Unknown']).optional(),
-  healthStatus: z.enum(['Healthy', 'Degraded', 'Progressing', 'Missing', 'Suspended', 'Unknown']).optional(),
-  revision: z.string().min(1).optional(),
-  project: z.string().min(1).optional(),
-  target: z.string().min(1).optional(),
-  timestamp: IsoTimestampSchema.optional(),
-  message: z.string().min(1).optional(),
-  url: z.string().url().optional(),
+  application: boundedString(200),
+  syncStatus: optionalField(z.enum(['Synced', 'OutOfSync', 'Unknown'])),
+  healthStatus: optionalField(
+    z.enum(['Healthy', 'Degraded', 'Progressing', 'Missing', 'Suspended', 'Unknown']),
+  ),
+  revision: optionalField(z.string()),
+  project: optionalField(z.string()),
+  target: optionalField(z.string()),
+  timestamp: optionalField(IsoTimestampSchema),
+  message: optionalField(z.string()),
+  url: optionalField(z.string().url()),
 });
 
 const eventStyles: Record<ArgoCdTemplateData['event'], 'good' | 'warning' | 'attention'> = {
