@@ -63,25 +63,38 @@ describe("renderStatusCakeTemplate", () => {
     );
   });
 
-  it("renders SSL presentation without requiring a test ID", () => {
+  it("renders SSL presentation and certificate dates without a test name or ID", () => {
     const card = renderStatusCakeTemplate({
       status: "Expiring",
-      testName: "developer.gov.bc.ca certificate",
       websiteUrl: "https://developer.gov.bc.ca",
       method: "SSL",
+      validFrom: "1774224000",
+      validUntil: "1791417540",
     });
 
     const items = getContentItems(card);
     const columns = items[0]?.columns as Array<Record<string, unknown>>;
     const statusItems = columns[0]?.items as Array<Record<string, unknown>>;
+    const title = items.find((item) => item.type === "TextBlock" && item.size === "Large");
+    const factSet = items.find((item) => item.type === "FactSet");
+    const facts = factSet?.facts as Array<Record<string, string>>;
 
     expect(statusItems[0]?.text).toBe("🔒 SSL - EXPIRING");
+    expect(title?.text).toBe("developer.gov.bc.ca");
+    expect(facts).toContainEqual({
+      title: "Valid from:",
+      value: "2026-03-23T00:00:00.000Z",
+    });
+    expect(facts).toContainEqual({
+      title: "Valid until:",
+      value: "2026-10-07T23:59:00.000Z",
+    });
     expect(items.some((item) => item.type === "ActionSet")).toBe(false);
     expect(summarizeStatusCakeTemplate({
       status: "Expired",
-      testName: "developer.gov.bc.ca certificate",
+      websiteUrl: "https://developer.gov.bc.ca",
       method: "SSL",
-    })).toContain("SSL on developer.gov.bc.ca certificate is EXPIRED");
+    })).toContain("SSL on developer.gov.bc.ca is EXPIRED");
   });
 
   it.each([undefined, "Domain"])(
@@ -104,8 +117,10 @@ describe("renderStatusCakeTemplate", () => {
   it("accepts non-uptime statuses", () => {
     expect(StatusCakeTemplateDataSchema.parse({
       status: "Expiring",
-      testName: "developer.gov.bc.ca certificate",
+      websiteUrl: "https://developer.gov.bc.ca",
       method: "SSL",
+      validFrom: "1774224000",
+      validUntil: "1791417540",
     }).status).toBe("Expiring");
   });
 

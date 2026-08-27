@@ -87,7 +87,7 @@ export interface ArgoCdTemplateData {
 
 export interface StatusCakeTemplateData {
   status: string;
-  testName: string;
+  testName?: string;
   websiteUrl?: string;
   checkRate?: string;
   ip?: string;
@@ -95,6 +95,8 @@ export interface StatusCakeTemplateData {
   method?: string;
   statusCode?: string;
   testId?: string;
+  validFrom?: string;
+  validUntil?: string;
 }
 
 export type TemplateName = 'generic' | 'github_pull_request' | 'github_workflow_run' | 'sysdig' | 'uptime' | 'db_backup' | 'argocd' | 'statuscake';
