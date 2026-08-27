@@ -10,21 +10,21 @@ describe('truncateText', () => {
   });
 
   it('truncates with an ellipsis when over the limit', () => {
-    expect(truncateText('abcdefghij', 8)).toBe('abcde...');
+    expect(truncateText('abcdefghij', 8)).toBe('abcdefg\u2026');
   });
 
   it('does not split a surrogate pair at the boundary', () => {
-    // '😀' occupies indices 5 and 6, so a naive slice(0, 6) would cut it in half.
-    const result = truncateText('abcde😀fghij', 9);
+    // '😀' occupies indices 7 and 8, so a naive slice(0, 8) would cut it in half.
+    const result = truncateText('abcdefg😀hij', 9);
 
-    expect(result).toBe('abcde...');
+    expect(result).toBe('abcdefg\u2026');
     expect(hasLoneSurrogate(result)).toBe(false);
   });
 
   it('drops an unpaired high surrogate at the boundary', () => {
-    const result = truncateText('abcde\uD83Dfghij', 9);
+    const result = truncateText('abcdefg\uD83Dhij', 9);
 
-    expect(result).toBe('abcde...');
+    expect(result).toBe('abcdefg\u2026');
     expect(hasLoneSurrogate(result)).toBe(false);
   });
 

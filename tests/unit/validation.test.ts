@@ -293,7 +293,7 @@ describe('validateSendMessageRequest normalization', () => {
     const result = validateSendMessageRequest(payload);
     const text = result.content.kind === 'text' ? result.content.text : '';
     expect(text).toHaveLength(10000);
-    expect(text.endsWith('...')).toBe(true);
+    expect(text.endsWith('\u2026')).toBe(true);
   });
 
   it('rejects oversized html instead of truncating it', () => {

@@ -125,7 +125,7 @@ export function truncateText(value: string, maxLength: number): string {
     return value;
   }
 
-  let sliceEnd = Math.max(0, maxLength - 3);
+  let sliceEnd = Math.max(0, maxLength - 1);
   const lastCodePoint = sliceEnd > 0 ? (value.codePointAt(sliceEnd - 1) ?? 0) : 0;
 
   // Dropping a lone high surrogate keeps the output from ending mid-code-point.
