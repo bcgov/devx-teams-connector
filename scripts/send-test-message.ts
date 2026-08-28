@@ -50,6 +50,9 @@ interface Args {
   statusCode?: string;
   checkRate?: string;
   tags?: string;
+  workflowName?: string;
+  stack?: string;
+  executionId?: string;
 }
 
 function printHelp(): void {
@@ -95,10 +98,15 @@ Usage:
       --application "platform-registry-prod" --syncStatus OutOfSync --healthStatus Degraded \\
       --revision "f4e5d6c" --targetName "abc123-prod" --url "https://argocd.example.com/applications/platform-registry-prod"
 
+  Error template:
+    npm run send:test -- --type template --template error --workflowName "WebSite 1 Status Check" \
+      --message "Invalid syntax" --stack "Error: Malformed JSON payload\n at processTicksAndRejections" \
+      --url "https://example.com/errors/42" --executionId "exec-42"
+
 Options:
   --type <text|template>                  Message type (required)
   --preview                               Use /messages/preview endpoint (no Bot Framework delivery)
-  --template <generic|github_pull_request|github_workflow_run|sysdig|uptime|db_backup|argocd>
+  --template <generic|github_pull_request|github_workflow_run|sysdig|uptime|db_backup|argocd|error>
                                           Template name (for template type, default: generic)
 
   Text options:
@@ -164,6 +172,13 @@ Options:
   --timestamp <ISO8601>
   --message <string>
   --url <url>
+
+  Error options:
+  --workflowName <string>                 Workflow name (required)
+  --message <string>                      Error message
+  --stack <string>                   Stack trace
+  --url <url>                             Error details URL
+  --executionId <string>                  Execution ID
 
 Environment Variables:
   CONNECTOR_API_KEY                       Primary API key for authentication
@@ -345,6 +360,18 @@ function parseArgs(): Args {
         break;
       case '--tags':
         args.tags = next;
+        i++;
+        break;
+      case '--workflowName':
+        args.workflowName = next;
+        i++;
+        break;
+      case '--stack':
+        args.stack = next;
+        i++;
+        break;
+      case '--executionId':
+        args.executionId = next;
         i++;
         break;
       case '--help':
@@ -539,6 +566,19 @@ function buildTemplateContent(args: Args): { kind: 'template'; template: Templat
           ...(args.timestamp && { timestamp: args.timestamp }),
           ...(args.message && { message: args.message }),
           ...(args.url && { url: args.url }),
+        },
+      };
+
+    case 'error':
+      return {
+        kind: 'template',
+        template: 'error',
+        data: {
+          workflowName: requireArg(args.workflowName, '--workflowName'),
+          ...(args.message && { message: args.message }),
+          ...(args.stack && { stack: args.stack  }),
+          ...(args.url && { url: args.url }),
+          ...(args.executionId && { executionId: args.executionId }),
         },
       };
 
