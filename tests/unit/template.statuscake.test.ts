@@ -109,7 +109,7 @@ describe("renderStatusCakeTemplate", () => {
     const facts = factSet?.facts as Array<Record<string, string>>;
 
     expect(statusItems[0]?.text).toBe("🔒 SSL - EXPIRING");
-    expect(title?.text).toBe("developer.gov.bc.ca");
+    expect(title?.text).toBe("https://developer.gov.bc.ca");
     expect(facts).toContainEqual({
       title: "Valid from:",
       value: "2026-03-23T00:00:00.000Z",
@@ -123,7 +123,7 @@ describe("renderStatusCakeTemplate", () => {
       status: "Expired",
       websiteUrl: "https://developer.gov.bc.ca",
       method: "SSL",
-    })).toContain("SSL on developer.gov.bc.ca is EXPIRED");
+    })).toContain("SSL on https://developer.gov.bc.ca is EXPIRED");
   });
 
   it("omits the badge for an unsupported method", () => {
