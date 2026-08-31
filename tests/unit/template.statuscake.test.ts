@@ -42,6 +42,35 @@ describe("renderStatusCakeTemplate", () => {
     }
   });
 
+  it("renders an unexpected website status neutrally", () => {
+    const card = renderStatusCakeTemplate({
+      status: "Unknown",
+      testName: "payments-api",
+      method: "Website",
+    });
+
+    const items = getContentItems(card);
+    const columns = items[0]?.columns as Array<Record<string, unknown>>;
+    const statusItems = columns[0]?.items as Array<Record<string, unknown>>;
+
+    expect(statusItems[0]?.text).toBe("WEBSITE - UNKNOWN");
+    expect(statusItems[0]?.color).toBe("Default");
+  });
+
+  it("defaults to Website presentation when method is missing", () => {
+    const card = renderStatusCakeTemplate({
+      status: "down",
+      testName: "payments-api",
+    });
+
+    const items = getContentItems(card);
+    const columns = items[0]?.columns as Array<Record<string, unknown>>;
+    const statusItems = columns[0]?.items as Array<Record<string, unknown>>;
+
+    expect(statusItems[0]?.text).toBe("🔴 DOWN");
+    expect(statusItems[0]?.color).toBe("Attention");
+  });
+
   it("renders Page Speed presentation and action URL", () => {
     const card = renderStatusCakeTemplate({
       status: "Alerted",
@@ -97,22 +126,19 @@ describe("renderStatusCakeTemplate", () => {
     })).toContain("SSL on developer.gov.bc.ca is EXPIRED");
   });
 
-  it.each([undefined, "Domain"])(
-    "omits the badge for unsupported method %s",
-    (method) => {
-      const card = renderStatusCakeTemplate({
-        status: "Alerted",
-        testName: "domain expiry",
-        method,
-      });
+  it("omits the badge for an unsupported method", () => {
+    const card = renderStatusCakeTemplate({
+      status: "Alerted",
+      testName: "domain expiry",
+      method: "Domain",
+    });
 
-      const items = getContentItems(card);
-      const columns = items[0]?.columns as Array<Record<string, unknown>>;
-      const statusItems = columns[0]?.items as Array<Record<string, unknown>>;
+    const items = getContentItems(card);
+    const columns = items[0]?.columns as Array<Record<string, unknown>>;
+    const statusItems = columns[0]?.items as Array<Record<string, unknown>>;
 
-      expect(statusItems).toEqual([]);
-    },
-  );
+    expect(statusItems).toEqual([]);
+  });
 
   it("accepts non-uptime statuses", () => {
     expect(StatusCakeTemplateDataSchema.parse({

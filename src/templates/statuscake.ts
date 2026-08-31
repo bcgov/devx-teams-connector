@@ -30,13 +30,23 @@ function getStatusPresentation(
   status: string,
   method: string | undefined,
 ): { label: string; color: string } | undefined {
+  const normalizedStatus = status.trim().toLowerCase();
+
   switch (method?.trim().toLowerCase() ?? "website") {
-    case "website":
-      return status.trim().toLowerCase() === "up" ? { label: "🟢 UP", color: "Good" } : { label: "🔴 DOWN", color: "Attention" };
+    case "website": {
+      switch (normalizedStatus) {
+        case "up":
+          return { label: "🟢 UP", color: "Good" };
+        case "down":
+          return { label: "🔴 DOWN", color: "Attention" };
+        default:
+          return { label: `WEBSITE - ${status.trim().toUpperCase()}`, color: "Default" };
+      }
+    }
     case "page speed":
-      return { label: `⚡ PAGE SPEED - ${status.toUpperCase()}`, color: "Default" };
+      return { label: `⚡ PAGE SPEED - ${status.trim().toUpperCase()}`, color: "Default" };
     case "ssl":
-      return { label: `🔒 SSL - ${status.toUpperCase()}`, color: "Default" };
+      return { label: `🔒 SSL - ${status.trim().toUpperCase()}`, color: "Default" };
     default:
       return undefined;
   }
