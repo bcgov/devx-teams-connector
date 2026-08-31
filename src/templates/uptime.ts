@@ -9,13 +9,14 @@ import {
   createFactSet,
   createSectionSeparator,
   formatRelativeTimeOrIso,
+  optionalField,
 } from './shared';
 
 export const UptimeTemplateDataSchema = z.object({
   status: z.enum(['up', 'down']), // data.alert.is_up
   service: z.string().min(1), // data.service.display_name
-  downSince: IsoTimestampSchema.optional(), // data.alert.created_at
-  url: z.string().url().optional(), // data.links.alert_details
+  downSince: optionalField(IsoTimestampSchema), // data.alert.created_at
+  url: optionalField(z.string().url()), // data.links.alert_details
 });
 
 const statusBadges: Record<UptimeTemplateData['status'], string> = {

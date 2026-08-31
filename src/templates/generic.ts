@@ -1,7 +1,15 @@
 import { z } from 'zod';
 
 import type { AdaptiveCard, GenericTemplateData } from '../types';
-import { createActivitySummary, createBaseCard, createCardFrame, toTextColor } from './shared';
+import {
+  boundedString,
+  createActivitySummary,
+  createBaseCard,
+  createCardFrame,
+  optionalBoundedString,
+  optionalField,
+  toTextColor,
+} from './shared';
 
 const GenericSeveritySchema = z.enum([
   'critical',
@@ -15,12 +23,12 @@ const GenericSeveritySchema = z.enum([
 ]);
 
 export const GenericTemplateDataSchema = z.object({
-  title: z.string().min(1).max(200),
-  body: z.string().max(2000).optional(),
-  severity: GenericSeveritySchema.optional(),
-  url: z.string().url().optional(),
-  urlLabel: z.string().min(1).optional(),
-  source: z.string().min(1).optional(),
+  title: boundedString(200),
+  body: optionalBoundedString(2000),
+  severity: optionalField(GenericSeveritySchema),
+  url: optionalField(z.string().url()),
+  urlLabel: optionalField(z.string()),
+  source: optionalField(z.string()),
 });
 
 const severityStyles: Record<

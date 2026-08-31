@@ -7,6 +7,7 @@ import {
   createCardFrame,
   createFactSet,
   createSectionSeparator,
+  optionalField,
 } from "./shared";
 
 const UnixTimestampSchema = z.string().trim().regex(/^\d+$/, "Expected Unix timestamp in seconds");
@@ -14,16 +15,16 @@ const UnixTimestampSchema = z.string().trim().regex(/^\d+$/, "Expected Unix time
 // https://www.statuscake.com/kb/knowledge-base/how-to-use-the-web-hook-url/
 export const StatusCakeTemplateDataSchema = z.object({
   status: z.string().trim().min(1).max(64), // POST['Status']
-  testName: z.string().min(1).optional(), // POST['Name']
-  websiteUrl: z.string().url().optional(), // POST['URL']
-  statusCode: z.string().optional(), // POST['StatusCode']
-  ip: z.string().optional(), // POST['IP']
-  tags: z.string().optional(), // POST['Tags']
-  checkRate: z.string().optional(), // POST['Checkrate']
-  testId: z.string().optional(), // body.TestID from n8n payload
-  method: z.string().optional(), // body.Method from n8n payload
-  validFrom: UnixTimestampSchema.optional(), // body.ValidFrom from n8n payload
-  validUntil: UnixTimestampSchema.optional(), // body.ValidUntil from n8n payload
+  testName: optionalField(z.string()), // POST['Name'] not present in SSL alerts
+  websiteUrl: optionalField(z.string()), // POST['URL']
+  statusCode: optionalField(z.string()), // POST['StatusCode']
+  ip: optionalField(z.string()), // POST['IP']
+  tags: optionalField(z.string()), // POST['Tags']
+  checkRate: optionalField(z.string()), // POST['Checkrate']
+  testId: optionalField(z.string()), // body.TestID from n8n payload
+  method: optionalField(z.string()), // body.Method from n8n payload
+  validFrom: optionalField(UnixTimestampSchema), // body.ValidFrom from n8n payload
+  validUntil: optionalField(UnixTimestampSchema), // body.ValidUntil from n8n payload
 });
 
 function getStatusPresentation(
@@ -67,19 +68,8 @@ function getActionUrl(testId: string | undefined, method: string | undefined): s
   }
 }
 
-function toHostname(value: string | undefined): string | undefined {
-  if (!value) return undefined;
-
-  try {
-    return new URL(value).hostname;
-  } catch {
-    return undefined;
-  }
-}
-
 function getDisplayName(data: StatusCakeTemplateData): string {
   return data.testName?.trim()
-    || toHostname(data.websiteUrl)
     || data.websiteUrl
     || (data.method?.trim().toLowerCase() === "ssl" ? "SSL certificate" : "StatusCake alert");
 }
@@ -156,7 +146,7 @@ export function renderStatusCakeTemplate(
   ];
 
   const factSet = createFactSet([
-    { title: "Website", value: toHostname(data.websiteUrl) },
+    { title: "Website", value: data.websiteUrl },
     { title: "Method", value: data.method },
     { title: "Status code", value: data.statusCode },
     { title: "Check rate", value: data.checkRate },
