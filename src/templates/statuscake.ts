@@ -30,7 +30,7 @@ function getStatusPresentation(
   status: string,
   method: string | undefined,
 ): { label: string; color: string } | undefined {
-  switch (method?.trim().toLowerCase()) {
+  switch (method?.trim().toLowerCase() ?? "website") {
     case "website":
       return status.trim().toLowerCase() === "up" ? { label: "🟢 UP", color: "Good" } : { label: "🔴 DOWN", color: "Attention" };
     case "page speed":
