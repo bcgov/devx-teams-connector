@@ -43,7 +43,9 @@ interface Args {
   revision?: string;
   project?: string;
   targetName?: string;
-  testName?: string;
+  testName?: string; 
+  validFrom?: string;
+  validUntil?: string;
   websiteUrl?: string;
   testId?: string;
   method?: string;
@@ -95,10 +97,15 @@ Usage:
       --application "platform-registry-prod" --syncStatus OutOfSync --healthStatus Degraded \\
       --revision "f4e5d6c" --targetName "abc123-prod" --url "https://argocd.example.com/applications/platform-registry-prod"
 
+  StatusCake SSL template:
+    npm run send:test -- --type template --template statuscake --status Expiring \
+      --websiteUrl "https://status.gov.bc.ca" --method SSL \
+      --validFrom 1774224000 --validUntil 1791417540
+
 Options:
   --type <text|template>                  Message type (required)
   --preview                               Use /messages/preview endpoint (no Bot Framework delivery)
-  --template <generic|github_pull_request|github_workflow_run|sysdig|uptime|db_backup|argocd>
+  --template <generic|github_pull_request|github_workflow_run|sysdig|uptime|db_backup|argocd|statuscake>
                                           Template name (for template type, default: generic)
 
   Text options:
@@ -164,6 +171,18 @@ Options:
   --timestamp <ISO8601>
   --message <string>
   --url <url>
+
+  StatusCake options:
+  --status <string>                       Alert status (e.g. up, down, Alerted, Expiring)
+  --testName <string>                     Test name (optional for SSL alerts)
+  --websiteUrl <string>                   Monitored website URL
+  --testId <string>                       StatusCake test ID
+  --method <string>                       Monitor method (Website, Page speed, SSL)
+  --statusCode <string>                   HTTP status code
+  --checkRate <string>                    Check interval
+  --tags <string>                         Test tags
+  --validFrom <unix-seconds>              Certificate validity start
+  --validUntil <unix-seconds>             Certificate validity end
 
 Environment Variables:
   CONNECTOR_API_KEY                       Primary API key for authentication
@@ -319,7 +338,7 @@ function parseArgs(): Args {
         args.targetName = next;
         i++;
         break;
-        case '--testName':
+      case '--testName':
         args.testName = next;
         i++;
         break;
@@ -345,6 +364,14 @@ function parseArgs(): Args {
         break;
       case '--tags':
         args.tags = next;
+        i++;
+        break;
+      case '--validFrom':
+        args.validFrom = next;
+        i++;
+        break;
+      case '--validUntil':
+        args.validUntil = next;
         i++;
         break;
       case '--help':
@@ -490,14 +517,16 @@ function buildTemplateContent(args: Args): { kind: 'template'; template: Templat
         kind: 'template',
         template: 'statuscake',
         data: {
-          status: ensureValueInSet(args.status, '--status', ['up', 'down']),
-          testName: requireArg(args.testName, '--testName'),
+          status: requireArg(args.status, '--status'),
+          ...(args.testName && { testName: args.testName }),
           ...(args.websiteUrl && { websiteUrl: args.websiteUrl }),
           ...(args.testId && { testId: args.testId }),
           ...(args.method && { method: args.method }),
           ...(args.statusCode && { statusCode: args.statusCode }),
           ...(args.checkRate && { checkRate: args.checkRate }),
           ...(args.tags && { tags: args.tags }),
+          ...(args.validFrom && { validFrom: args.validFrom }),
+          ...(args.validUntil && { validUntil: args.validUntil }),
         },
       };
 
