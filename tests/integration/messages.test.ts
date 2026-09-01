@@ -684,6 +684,18 @@ describe('messages endpoint', () => {
         },
         summary: 'ArgoCD · Sync Failed: platform-registry-prod - ComparisonError: exceeded timeout waiting for condition',
       },
+      {
+        template: 'error',
+        data: {
+          workflowName: "error workflow name",
+          message: "invalid syntax",
+          stack: "Error: Malformed JSON payload\n at processTicksAndRejections",
+          url: "http://example.com/workflow/1234",
+          executionId: "1234",
+          
+        },
+        summary: 'Error in workflow: error workflow name - Message: invalid syntax',
+      },
     ];
 
     for (const payload of templatePayloads) {

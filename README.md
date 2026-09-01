@@ -13,7 +13,7 @@ Implemented:
 - Optional user @mentions supplied by API consumers
 - Content kinds:
   - `text`
-  - `template` with `template=generic|github_pull_request|github_workflow_run|sysdig|uptime|db_backup|argocd`
+  - `template` with `template=generic|github_pull_request|github_workflow_run|sysdig|uptime|db_backup|argocd|error`
   - `card` — Adaptive Card pass-through, enable with `ALLOW_CARD_PASSTHROUGH=true`. The card is forwarded to Teams as is.
 
 ## Prerequisites
@@ -395,6 +395,31 @@ curl -X POST http://localhost:3000/api/v1/messages \
   }'
 ```
 
+### Send an Error Template message
+
+```bash
+curl -X POST http://localhost:3000/api/v1/messages \
+  -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target": {
+      "teamId": "00000000-0000-0000-0000-000000000000",
+      "channelId": "19:abc123@thread.tacv2"
+    },
+    "content": {
+      "kind": "template",
+      "template": "error",
+      "data": {
+        "workflowName": "n8n webhook workflow",
+        "message": "invalid syntax",
+        "stack": "Error: Request failed with status 500 at processRequest (/app/src/server.js:42:17) at async handleRoute (/app/src/router.js:88:9) at async dispatch (/app/src/index.js:24:5) at async startServer (/app/src/app.js:15:11) at async Object.<anonymous> (/app/src/main.js:31:3) at Module._compile (node:internal/modules/cjs/loader:1251:14) at Module._extensions..js",
+        "executionId": "1234",
+        "url": "https://n8n.developer.gov.bc.ca/"
+      }
+    }
+  }'
+```
+
 ## Testing
 
 Run all tests:
@@ -465,6 +490,11 @@ Send Argo CD template:
 
 ```bash
 npm run send:test -- --type template --template argocd --event sync_failed --application "platform-registry-prod" --syncStatus OutOfSync --healthStatus Degraded --revision "f4e5d6c" --targetName "abc123-prod" --url "https://argocd.example.com/applications/platform-registry-prod"
+```
+
+Send Error template:
+```bash
+npm run send:test -- --type template --template error --workflowName "WebSite 1 Status Check" --message "Invalid syntax" --stack $'Error: Malformed JSON payload\n at processTicksAndRejections' --url "https://example.com/errors/42" --executionId "exec-42"
 ```
 
 Script env vars:
