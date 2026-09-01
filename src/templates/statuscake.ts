@@ -10,6 +10,12 @@ import {
   optionalField,
 } from "./shared";
 
+const statuscakeBaseUrl = "https://app.statuscake.com";
+const enum alertTypes {
+  WEBSITE = "website",
+  PAGE_SPEED = "page speed",
+  SSL = "ssl",
+}
 const UnixTimestampSchema = z.string().trim().regex(/^\d+$/, "Expected Unix timestamp in seconds");
 
 // https://www.statuscake.com/kb/knowledge-base/how-to-use-the-web-hook-url/
@@ -33,8 +39,8 @@ function getStatusPresentation(
 ): { label: string; color: string } | undefined {
   const normalizedStatus = status.trim().toLowerCase();
 
-  switch (method?.trim().toLowerCase() ?? "website") {
-    case "website": {
+  switch (method?.trim().toLowerCase() ?? alertTypes.WEBSITE) {
+    case alertTypes.WEBSITE: {
       switch (normalizedStatus) {
         case "up":
           return { label: "🟢 UP", color: "Good" };
@@ -44,9 +50,9 @@ function getStatusPresentation(
           return { label: `WEBSITE - ${status.trim().toUpperCase()}`, color: "Default" };
       }
     }
-    case "page speed":
+    case alertTypes.PAGE_SPEED:
       return { label: `⚡ PAGE SPEED - ${status.trim().toUpperCase()}`, color: "Default" };
-    case "ssl":
+    case alertTypes.SSL:
       return { label: `🔒 SSL - ${status.trim().toUpperCase()}`, color: "Default" };
     default:
       return undefined;
@@ -57,12 +63,12 @@ function getActionUrl(testId: string | undefined, method: string | undefined): s
   if (!method || !testId) return undefined;
 
   switch (method.trim().toLowerCase()) {
-    case "website":
-      return `https://app.statuscake.com/UptimeStatus.php?tid=${encodeURIComponent(testId)}`;
-    case "page speed":
-      return `https://app.statuscake.com/SpeedMonitor.php?PSID=${encodeURIComponent(testId)}`;
-    // case "ssl": // Currently testId is not provided in the SSL webhook payload. If that changes, we can use this URL to link to the SSL details page.
-    //   return `https://app.statuscake.com/ssl_detail.php?id=${encodeURIComponent(testId)}`;
+    case alertTypes.WEBSITE:
+      return `${statuscakeBaseUrl}/UptimeStatus.php?tid=${encodeURIComponent(testId)}`;
+    case alertTypes.PAGE_SPEED:
+      return `${statuscakeBaseUrl}/SpeedMonitor.php?PSID=${encodeURIComponent(testId)}`;
+    // case alertTypes.SSL: // Currently testId is not provided in the SSL webhook payload. If that changes, we can use this URL to link to the SSL details page.
+    //   return `${statuscakeBaseUrl}/ssl_detail.php?id=${encodeURIComponent(testId)}`;
     default:
       return undefined;
   }
@@ -71,7 +77,7 @@ function getActionUrl(testId: string | undefined, method: string | undefined): s
 function getDisplayName(data: StatusCakeTemplateData): string {
   return data.testName?.trim()
     || data.websiteUrl
-    || (data.method?.trim().toLowerCase() === "ssl" ? "SSL certificate" : "StatusCake alert");
+    || (data.method?.trim().toLowerCase() === alertTypes.SSL ? "SSL certificate" : "StatusCake alert");
 }
 
 function formatUnixTimestamp(value: string | undefined): string | undefined {
@@ -87,7 +93,7 @@ export function summarizeStatusCakeTemplate(
   const displayName = getDisplayName(data);
 
   return createActivitySummary([
-    data.method?.trim().toLowerCase() === "ssl"
+    data.method?.trim().toLowerCase() === alertTypes.SSL
       ? `SSL on ${displayName} is ${data.status.toUpperCase()}`
       : `${displayName} is ${data.status.toUpperCase()}`,
   ]);

@@ -126,6 +126,40 @@ describe("renderStatusCakeTemplate", () => {
     })).toContain("SSL on https://developer.gov.bc.ca is EXPIRED");
   });
 
+    it("renders SSL presentation and certificate date is invalid so it dislays as string", () => {
+    const card = renderStatusCakeTemplate({
+      status: "Expiring",
+      websiteUrl: "https://developer.gov.bc.ca",
+      method: "SSL",
+      validFrom: "1774222222222222224000",
+      validUntil: "invalid-unix-time",
+    });
+
+    const items = getContentItems(card);
+    const columns = items[0]?.columns as Array<Record<string, unknown>>;
+    const statusItems = columns[0]?.items as Array<Record<string, unknown>>;
+    const title = items.find((item) => item.type === "TextBlock" && item.size === "Large");
+    const factSet = items.find((item) => item.type === "FactSet");
+    const facts = factSet?.facts as Array<Record<string, string>>;
+
+    expect(statusItems[0]?.text).toBe("🔒 SSL - EXPIRING");
+    expect(title?.text).toBe("https://developer.gov.bc.ca");
+    expect(facts).toContainEqual({
+      title: "Valid from:",
+      value: "1774222222222222224000",
+    });
+    expect(facts).toContainEqual({
+      title: "Valid until:",
+      value: "invalid-unix-time",
+    });
+    expect(items.some((item) => item.type === "ActionSet")).toBe(false);
+    expect(summarizeStatusCakeTemplate({
+      status: "Expired",
+      websiteUrl: "https://developer.gov.bc.ca",
+      method: "SSL",
+    })).toContain("SSL on https://developer.gov.bc.ca is EXPIRED");
+  });
+
   it("omits the badge for an unsupported method", () => {
     const card = renderStatusCakeTemplate({
       status: "Alerted",
