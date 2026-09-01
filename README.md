@@ -397,7 +397,7 @@ curl -X POST http://localhost:3000/api/v1/messages \
 
 ### Send an Error Template message
 
-```
+```bash
 curl -X POST http://localhost:3000/api/v1/messages \
   -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
   -H "Content-Type: application/json" \
@@ -494,7 +494,7 @@ npm run send:test -- --type template --template argocd --event sync_failed --app
 
 Send Error template:
 ```bash
-npm run send:test -- --type template --template error --workflowName "WebSite 1 Status Check" --message "Invalid syntax" --stackTrace "Error: Malformed JSON payload\n at processTicksAndRejections" --url "https://example.com/errors/42" --executionId "exec-42"
+npm run send:test -- --type template --template error --workflowName "WebSite 1 Status Check" --message "Invalid syntax" --stack "Error: Malformed JSON payload\n at processTicksAndRejections" --url "https://example.com/errors/42" --executionId "exec-42"
 ```
 
 Script env vars:

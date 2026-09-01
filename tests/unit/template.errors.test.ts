@@ -73,10 +73,10 @@ describe('renderErrorTemplate', () => {
     const card = renderErrorTemplate({ workflowName: 'Cleanup job' });
     const items = getContentItems(card);
 
-    expect(items.some((item) => item.type === 'TextBlock' && String(item.text).includes('Execution ID:'))).toBe(false);
-    expect(items.some((item) => item.type === 'TextBlock' && String(item.text).includes('Message:'))).toBe(false);
-    expect(items.some((item) => item.type === 'TextBlock' && String(item.text).includes('Stack trace:'))).toBe(false);
-    expect(items.some((item) => item.type === 'ActionSet')).toBe(false);
+    expect(items).toHaveLength(2);
+    expect(items.every((item) => typeof item.type === 'string')).toBe(true);
+    expect(items.some((item) => item.type === 'TextBlock' && String(item.text).includes('Workflow: Cleanup job'))).toBe(true);
+    expect(items.some((item) => item.type === 'TextBlock' && String(item.text).includes('❌ ERROR in n8n workflow'))).toBe(true);
   });
 
   it('accepts valid schema values and trims overly long strings', () => {

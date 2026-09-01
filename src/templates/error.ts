@@ -12,6 +12,10 @@ import {
 } from './shared';
 
 
+function hasBody(data: ErrorTemplateData): boolean {
+  return Boolean(data.message || data.stack || data.url);
+}
+
 export const ErrorTemplateDataSchema = z.object({
   workflowName: boundedString(2000),
   message: optionalBoundedString(2000),
@@ -44,6 +48,7 @@ export function renderErrorTemplate(data: ErrorTemplateData): AdaptiveCard {
     weight: 'Bolder',
     size: 'Medium',
     spacing: 'Small',
+    wrap: true,
   });
 
   if (data.executionId) {
@@ -56,39 +61,42 @@ export function renderErrorTemplate(data: ErrorTemplateData): AdaptiveCard {
     });
   }
 
-  contentItems.push(createSectionSeparator());
+  if (hasBody(data)) {
+    contentItems.push(createSectionSeparator());
 
-  if (data.message) {
-    contentItems.push({
-      type: 'TextBlock',
-      text: `Message: ${data.message}`,
-      size: 'Medium',
-      spacing: 'Small',
-    });
-  }
+    if (data.message) {
+      contentItems.push({
+        type: 'TextBlock',
+        text: `Message: ${data.message}`,
+        size: 'Medium',
+        spacing: 'Small',
+        wrap: true,
+      });
+    }
 
-  if (data.stack) {
-    contentItems.push({
-      type: 'TextBlock',
-      text: `Stack trace: ${data.stack}`,
-      wrap: true,
-      size: 'Small',
-      spacing: 'Medium',
-    });
-  }
+    if (data.stack) {
+      contentItems.push({
+        type: 'TextBlock',
+        text: `Stack trace: ${data.stack}`,
+        wrap: true,
+        size: 'Small',
+        spacing: 'Medium',
+      });
+    }
 
-  if (data.url) {
-    contentItems.push({
-      type: 'ActionSet',
-      spacing: 'Medium',
-      actions: [
-        {
-          type: 'Action.OpenUrl',
-          title: 'View Error Details',
-          url: data.url,
-        },
-      ],
-    });
+    if (data.url) {
+      contentItems.push({
+        type: 'ActionSet',
+        spacing: 'Medium',
+        actions: [
+          {
+            type: 'Action.OpenUrl',
+            title: 'View Error Details',
+            url: data.url,
+          },
+        ],
+      });
+    }
   }
 
 
