@@ -13,7 +13,7 @@ Implemented:
 - Optional user @mentions supplied by API consumers
 - Content kinds:
   - `text`
-  - `template` with `template=generic|github_pull_request|github_workflow_run|sysdig|uptime|db_backup|argocd`
+  - `template` with `template=generic|github_pull_request|github_workflow_run|sysdig|uptime|db_backup|argocd|statuscake`
   - `card` — Adaptive Card pass-through, enable with `ALLOW_CARD_PASSTHROUGH=true`. The card is forwarded to Teams as is.
 
 ## Prerequisites
@@ -337,6 +337,34 @@ curl -X POST http://localhost:3000/api/v1/messages \
         "service": "payments-api",
         "downSince": "2026-02-22T11:40:00Z",
         "url": "https://status.example.com/payments-api"
+      }
+    }
+  }'
+```
+
+### Send Status Cake template message
+
+```bash
+curl -X POST http://localhost:3000/api/v1/messages \
+  -H "Authorization: Bearer ${CONNECTOR_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target": {
+      "teamId": "00000000-0000-0000-0000-000000000000",
+      "channelId": "19:abc123@thread.tacv2"
+    },
+    "content": {
+      "kind": "template",
+      "template": "statuscake",
+      "data": {
+        "testId": "9011444",
+        "websiteUrl": "status.gov.bc.ca",
+        "status": "Down",
+        "method": "Website",
+        "testName": "Status Uptime Alerts",
+        "statusCode": "0",
+        "status": "Down",
+        "checkRate": "30"
       }
     }
   }'

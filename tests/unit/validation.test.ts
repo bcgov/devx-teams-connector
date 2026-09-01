@@ -390,8 +390,8 @@ describe('validateSendMessageRequest normalization', () => {
         kind: 'template',
         template: 'statuscake',
         data: {
-          status: 'down',
-          testName: '',
+          status: '',
+          testName: 'API health',
         },
       },
     };
