@@ -17,11 +17,11 @@ function hasBody(data: ErrorTemplateData): boolean {
 }
 
 export const ErrorTemplateDataSchema = z.object({
-  workflowName: boundedString(2000),
-  message: optionalBoundedString(2000),
-  stack: optionalBoundedString(2000),
-  url: optionalField(z.string().url()),
-  executionId: optionalField(z.string()),
+  workflowName: boundedString(100), //workflow.name
+  message: optionalBoundedString(500), //execution.error.message
+  stack: optionalBoundedString(1000), //execution.error.stack
+  url: optionalField(z.string().url()), //execution.url
+  executionId: optionalField(z.string()), //execution.id
 });
 
 
