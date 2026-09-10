@@ -10,10 +10,18 @@ import {
   optionalField,
 } from "./shared";
 
+const statuscakeBaseUrl = "https://app.statuscake.com";
+const enum alertTypes {
+  WEBSITE = "website",
+  PAGE_SPEED = "page speed",
+  SSL = "ssl",
+}
+const UnixTimestampSchema = z.string().trim().regex(/^\d+$/, "Expected Unix timestamp in seconds");
+
 // https://www.statuscake.com/kb/knowledge-base/how-to-use-the-web-hook-url/
 export const StatusCakeTemplateDataSchema = z.object({
-  status: z.enum(["up", "down"]), // POST['Status']
-  testName: z.string().min(1), // POST['Name']
+  status: z.string().trim().min(1).max(64), // POST['Status']
+  testName: optionalField(z.string()), // POST['Name'] not present in SSL alerts
   websiteUrl: optionalField(z.string()), // POST['URL']
   statusCode: optionalField(z.string()), // POST['StatusCode']
   ip: optionalField(z.string()), // POST['IP']
@@ -21,24 +29,93 @@ export const StatusCakeTemplateDataSchema = z.object({
   checkRate: optionalField(z.string()), // POST['Checkrate']
   testId: optionalField(z.string()), // body.TestID from n8n payload
   method: optionalField(z.string()), // body.Method from n8n payload
+  validFrom: optionalField(UnixTimestampSchema), // body.ValidFrom from n8n payload
+  validUntil: optionalField(UnixTimestampSchema), // body.ValidUntil from n8n payload
 });
 
-const statusBadges: Record<StatusCakeTemplateData["status"], string> = {
-  up: "🟢 UP",
-  down: "🔴 DOWN",
-};
+function getStatusPresentation(
+  status: string,
+  method: string | undefined,
+): { label: string; color: string } | undefined {
+  const normalizedStatus = status.trim().toLowerCase();
+
+  switch (method?.trim().toLowerCase() ?? alertTypes.WEBSITE) {
+    case alertTypes.WEBSITE: {
+      switch (normalizedStatus) {
+        case "up":
+          return { label: "🟢 UP", color: "Good" };
+        case "down":
+          return { label: "🔴 DOWN", color: "Attention" };
+        default:
+          return { label: `WEBSITE - ${status.trim().toUpperCase()}`, color: "Default" };
+      }
+    }
+    case alertTypes.PAGE_SPEED:
+      return { label: `⚡ PAGE SPEED - ${status.trim().toUpperCase()}`, color: "Default" };
+    case alertTypes.SSL:
+      return { label: `🔒 SSL - ${status.trim().toUpperCase()}`, color: "Default" };
+    default:
+      return undefined;
+  }
+}
+
+function getActionUrl(testId: string | undefined, method: string | undefined): string | undefined {
+  if (!method || !testId) return undefined;
+
+  switch (method.trim().toLowerCase()) {
+    case alertTypes.WEBSITE:
+      return `${statuscakeBaseUrl}/UptimeStatus.php?tid=${encodeURIComponent(testId)}`;
+    case alertTypes.PAGE_SPEED:
+      return `${statuscakeBaseUrl}/SpeedMonitor.php?PSID=${encodeURIComponent(testId)}`;
+    // case alertTypes.SSL: // Currently testId is not provided in the SSL webhook payload. If that changes, we can use this URL to link to the SSL details page.
+    //   return `${statuscakeBaseUrl}/ssl_detail.php?id=${encodeURIComponent(testId)}`;
+    default:
+      return undefined;
+  }
+}
+
+function getDisplayName(data: StatusCakeTemplateData): string {
+  return data.testName?.trim()
+    || data.websiteUrl
+    || (data.method?.trim().toLowerCase() === alertTypes.SSL ? "SSL certificate" : "StatusCake alert");
+}
+
+function formatUnixTimestamp(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+
+  const date = new Date(Number(value) * 1000);
+  return Number.isNaN(date.getTime()) ? value : date.toISOString();
+}
 
 export function summarizeStatusCakeTemplate(
   data: StatusCakeTemplateData,
 ): string {
+  const displayName = getDisplayName(data);
+
   return createActivitySummary([
-    `${data.testName} is ${data.status.toUpperCase()}`,
+    data.method?.trim().toLowerCase() === alertTypes.SSL
+      ? `SSL on ${displayName} is ${data.status.toUpperCase()}`
+      : `${displayName} is ${data.status.toUpperCase()}`,
   ]);
 }
 
 export function renderStatusCakeTemplate(
   data: StatusCakeTemplateData,
 ): AdaptiveCard {
+  const statusPresentation = getStatusPresentation(data.status, data.method);
+  const statusItems: Array<Record<string, unknown>> = statusPresentation
+    ? [
+        {
+          type: "TextBlock",
+          text: statusPresentation.label,
+          size: "Small",
+          color: statusPresentation.color,
+          weight: "Bolder",
+          spacing: "None",
+        },
+      ]
+    : [];
+
   const contentItems: Array<Record<string, unknown>> = [
     {
       type: "ColumnSet",
@@ -47,16 +124,7 @@ export function renderStatusCakeTemplate(
         {
           type: "Column",
           width: "stretch",
-          items: [
-            {
-              type: "TextBlock",
-              text: statusBadges[data.status],
-              size: "Small",
-              color: data.status === "up" ? "Good" : "Attention",
-              weight: "Bolder",
-              spacing: "None",
-            },
-          ],
+          items: statusItems,
         },
         {
           type: "Column",
@@ -75,7 +143,7 @@ export function renderStatusCakeTemplate(
     },
     {
       type: "TextBlock",
-      text: data.testName,
+      text: getDisplayName(data),
       weight: "Bolder",
       size: "Large",
       wrap: true,
@@ -90,6 +158,8 @@ export function renderStatusCakeTemplate(
     { title: "Check rate", value: data.checkRate },
     { title: "Tags", value: data.tags },
     { title: "IP", value: data.ip },
+    { title: "Valid from", value: formatUnixTimestamp(data.validFrom) },
+    { title: "Valid until", value: formatUnixTimestamp(data.validUntil) },
   ]);
 
   if (factSet) {
@@ -97,9 +167,7 @@ export function renderStatusCakeTemplate(
     contentItems.push(factSet);
   }
 
-  const actionUrl = data.testId
-    ? `https://app.statuscake.com/UptimeStatus.php?tid=${encodeURIComponent(data.testId)}`
-    : undefined;
+  const actionUrl = getActionUrl(data.testId, data.method);
 
   if (actionUrl) {
     contentItems.push({
