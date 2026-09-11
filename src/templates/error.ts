@@ -11,15 +11,18 @@ import {
   optionalField,
 } from './shared';
 
+export const MAX_ERROR_WORKFLOW_NAME_LENGTH = 100;
+export const MAX_ERROR_MESSAGE_LENGTH = 500;
+export const MAX_ERROR_STACK_LENGTH = 2000;
 
 function hasBody(data: ErrorTemplateData): boolean {
   return Boolean(data.message || data.stack || data.url);
 }
 
 export const ErrorTemplateDataSchema = z.object({
-  workflowName: boundedString(100), //workflow.name
-  message: optionalBoundedString(500), //execution.error.message
-  stack: optionalBoundedString(1000), //execution.error.stack
+  workflowName: boundedString(MAX_ERROR_WORKFLOW_NAME_LENGTH), //workflow.name
+  message: optionalBoundedString(MAX_ERROR_MESSAGE_LENGTH), //execution.error.message
+  stack: optionalBoundedString(MAX_ERROR_STACK_LENGTH), //execution.error.stack
   url: optionalField(z.string().url()), //execution.url
   executionId: optionalField(z.string()), //execution.id
 });
@@ -67,7 +70,7 @@ export function renderErrorTemplate(data: ErrorTemplateData): AdaptiveCard {
     if (data.message) {
       contentItems.push({
         type: 'TextBlock',
-        text: `Message: ${data.message}`,
+        text: `Error Message: ${data.message}`,
         size: 'Medium',
         spacing: 'Small',
         wrap: true,
@@ -77,10 +80,19 @@ export function renderErrorTemplate(data: ErrorTemplateData): AdaptiveCard {
     if (data.stack) {
       contentItems.push({
         type: 'TextBlock',
-        text: `Stack trace: ${data.stack}`,
+        text: 'Stack trace',
+        size: 'Medium',
+        weight: 'Bolder',
+        isSubtle: true,
+        spacing: 'Small',
+        wrap: true,
+      });
+      contentItems.push({
+        type: 'TextBlock',
+        text: `\`\`\`\n${data.stack}\n\`\`\``,
         wrap: true,
         size: 'Small',
-        spacing: 'Medium',
+        spacing: 'Small',
       });
     }
 

@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ErrorTemplateDataSchema,
+  MAX_ERROR_MESSAGE_LENGTH,
+  MAX_ERROR_STACK_LENGTH,
+  MAX_ERROR_WORKFLOW_NAME_LENGTH,
   renderErrorTemplate,
   summarizeErrorTemplate,
 } from '../../src/templates/error';
@@ -44,7 +47,7 @@ describe('renderErrorTemplate', () => {
     expect(executionItem).toBeDefined();
 
     const messageItem = items.find(
-      (item) => item.type === 'TextBlock' && String(item.text).startsWith('Message: invalid JSON payload received'),
+      (item) => item.type === 'TextBlock' && String(item.text).startsWith('Error Message: invalid JSON payload received'),
     );
     expect(messageItem).toBeDefined();
 
@@ -65,8 +68,10 @@ describe('renderErrorTemplate', () => {
     });
 
     const items = getContentItems(card);
-    expect(items.some((item) => item.type === 'TextBlock' && item.text === 'Message: Retry limit exceeded')).toBe(true);
-    expect(items.some((item) => item.type === 'TextBlock' && String(item.text).startsWith('Stack trace: Error: Request failed'))).toBe(true);
+    expect(items.length).toBe(6);
+    expect(items.some((item) => item.type === 'TextBlock' && item.text === 'Error Message: Retry limit exceeded')).toBe(true);
+    expect(items.some((item) => item.type === 'TextBlock' && String(item.text) === 'Stack trace')).toBe(true);
+    expect(items.some((item) => item.type === 'TextBlock' && String(item.text).startsWith('```\nError: Request failed'))).toBe(true);
   });
 
   it('omits optional fields when they are not provided', () => {
@@ -88,11 +93,11 @@ describe('renderErrorTemplate', () => {
       executionId: 'exec-7',
     });
 
-    expect(parsed.workflowName.length).toBeLessThanOrEqual(2000);
+    expect(parsed.workflowName.length).toBeLessThanOrEqual(MAX_ERROR_WORKFLOW_NAME_LENGTH);
     expect(parsed.message).toBeDefined();
-    expect(parsed.message!.length).toBeLessThanOrEqual(2000);
+    expect(parsed.message!.length).toBeLessThanOrEqual(MAX_ERROR_MESSAGE_LENGTH);
     expect(parsed.stack).toBeDefined();
-    expect(parsed.stack!.length).toBeLessThanOrEqual(2000);
+    expect(parsed.stack!.length).toBeLessThanOrEqual(MAX_ERROR_STACK_LENGTH);
     expect(parsed.url).toBe('https://example.com/errors/7');
     expect(parsed.executionId).toBe('exec-7');
   });
