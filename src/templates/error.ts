@@ -13,7 +13,7 @@ import {
 
 export const MAX_ERROR_WORKFLOW_NAME_LENGTH = 100;
 export const MAX_ERROR_MESSAGE_LENGTH = 500;
-export const MAX_ERROR_STACK_LENGTH = 2000;
+export const MAX_ERROR_STACK_LENGTH = 1000;
 
 function hasBody(data: ErrorTemplateData): boolean {
   return Boolean(data.message || data.stack || data.url);
@@ -86,13 +86,20 @@ export function renderErrorTemplate(data: ErrorTemplateData): AdaptiveCard {
         isSubtle: true,
         spacing: 'Small',
         wrap: true,
-      });
-      contentItems.push({
-        type: 'TextBlock',
-        text: `\`\`\`\n${data.stack}\n\`\`\``,
-        wrap: true,
-        size: 'Small',
+      }, 
+      {
+        type: 'Container',
+        style: 'emphasis',
         spacing: 'Small',
+        items: [
+          {
+            type: 'TextBlock',
+            text: data.stack,
+            fontType: 'Monospace',
+            wrap: true,
+            size: 'Small',
+          },
+        ],
       });
     }
 
@@ -115,6 +122,6 @@ export function renderErrorTemplate(data: ErrorTemplateData): AdaptiveCard {
   const body: Array<Record<string, unknown>> = [createCardFrame(contentItems)];
 
   return createBaseCard(body);
-} 
+}
 
 

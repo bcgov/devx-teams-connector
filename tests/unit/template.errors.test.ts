@@ -68,10 +68,23 @@ describe('renderErrorTemplate', () => {
     });
 
     const items = getContentItems(card);
-    expect(items.length).toBe(6);
-    expect(items.some((item) => item.type === 'TextBlock' && item.text === 'Error Message: Retry limit exceeded')).toBe(true);
-    expect(items.some((item) => item.type === 'TextBlock' && String(item.text) === 'Stack trace')).toBe(true);
-    expect(items.some((item) => item.type === 'TextBlock' && String(item.text).startsWith('```\nError: Request failed'))).toBe(true);
+    expect(items.some(
+      (item) => item.type === 'TextBlock' && item.text === 'Error Message: Retry limit exceeded',
+    )).toBe(true);
+    expect(items.some(
+      (item) => item.type === 'TextBlock' && item.text === 'Stack trace',
+    )).toBe(true);
+    const stackContainer = items.find(
+      (item) => item.type === 'Container' && item.style === 'emphasis',
+    );
+    expect(stackContainer).toBeDefined();
+
+    const stackText = (stackContainer?.items as Array<Record<string, unknown>> | undefined)
+      ?.find((item) => item.type === 'TextBlock');
+    expect(stackText).toMatchObject({
+      text: 'Error: Request failed\n    at processTicksAndRejections',
+      fontType: 'Monospace',
+    });
   });
 
   it('omits optional fields when they are not provided', () => {
