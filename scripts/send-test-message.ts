@@ -52,6 +52,9 @@ interface Args {
   statusCode?: string;
   checkRate?: string;
   tags?: string;
+  workflowName?: string;
+  stack?: string;
+  executionId?: string;
 }
 
 function printHelp(): void {
@@ -102,10 +105,15 @@ Usage:
       --websiteUrl "https://status.gov.bc.ca" --method SSL \
       --validFrom 1774224000 --validUntil 1791417540
 
+  Error template:
+    npm run send:test -- --type template --template error --workflowName "WebSite 1 Status Check" \
+      --message "Invalid syntax" --stack "Error: Malformed JSON payload\n at processTicksAndRejections" \
+      --url "https://example.com/errors/42" --executionId "exec-42"
+
 Options:
   --type <text|template>                  Message type (required)
   --preview                               Use /messages/preview endpoint (no Bot Framework delivery)
-  --template <generic|github_pull_request|github_workflow_run|sysdig|uptime|db_backup|argocd|statuscake>
+  --template <generic|github_pull_request|github_workflow_run|sysdig|uptime|db_backup|argocd|statuscake|error>
                                           Template name (for template type, default: generic)
 
   Text options:
@@ -183,6 +191,13 @@ Options:
   --tags <string>                         Test tags
   --validFrom <unix-seconds>              Certificate validity start
   --validUntil <unix-seconds>             Certificate validity end
+
+  Error options:
+  --workflowName <string>                 Workflow name (required)
+  --message <string>                      Error message
+  --stack <string>                   Stack trace
+  --url <url>                             Error details URL
+  --executionId <string>                  Execution ID
 
 Environment Variables:
   CONNECTOR_API_KEY                       Primary API key for authentication
@@ -372,6 +387,18 @@ function parseArgs(): Args {
         break;
       case '--validUntil':
         args.validUntil = next;
+        i++;
+        break;
+      case '--workflowName':
+        args.workflowName = next;
+        i++;
+        break;
+      case '--stack':
+        args.stack = next;
+        i++;
+        break;
+      case '--executionId':
+        args.executionId = next;
         i++;
         break;
       case '--help':
@@ -568,6 +595,19 @@ function buildTemplateContent(args: Args): { kind: 'template'; template: Templat
           ...(args.timestamp && { timestamp: args.timestamp }),
           ...(args.message && { message: args.message }),
           ...(args.url && { url: args.url }),
+        },
+      };
+
+    case 'error':
+      return {
+        kind: 'template',
+        template: 'error',
+        data: {
+          workflowName: requireArg(args.workflowName, '--workflowName'),
+          ...(args.message && { message: args.message }),
+          ...(args.stack && { stack: args.stack  }),
+          ...(args.url && { url: args.url }),
+          ...(args.executionId && { executionId: args.executionId }),
         },
       };
 

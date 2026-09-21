@@ -70,6 +70,12 @@ const ArgoCdTemplateContentSchema = z.object({
   data: templateDataSchemas.argocd,
 });
 
+const ErrorTemplateContentSchema = z.object({
+  kind: z.literal('template'),
+  template: z.literal('error'),
+  data: templateDataSchemas.error,
+});
+
 const TemplateContentSchema = z.discriminatedUnion('template', [
   GenericTemplateContentSchema,
   GitHubPrTemplateContentSchema,
@@ -79,6 +85,7 @@ const TemplateContentSchema = z.discriminatedUnion('template', [
   DbBackupTemplateContentSchema,
   ArgoCdTemplateContentSchema,
   StatusCakeTemplateContentSchema,
+  ErrorTemplateContentSchema,
 ]);
 
 const CardSchema = z

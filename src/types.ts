@@ -99,7 +99,15 @@ export interface StatusCakeTemplateData {
   validUntil?: string;
 }
 
-export type TemplateName = 'generic' | 'github_pull_request' | 'github_workflow_run' | 'sysdig' | 'uptime' | 'db_backup' | 'argocd' | 'statuscake';
+export interface ErrorTemplateData {
+  workflowName: string;
+  message?: string;
+  stack?: string;
+  url?: string;
+  executionId?: string;
+}
+
+export type TemplateName = 'generic' | 'github_pull_request' | 'github_workflow_run' | 'sysdig' | 'uptime' | 'db_backup' | 'argocd' | 'statuscake' | 'error';
 
 export interface TemplateDataByName {
   generic: GenericTemplateData;
@@ -110,6 +118,7 @@ export interface TemplateDataByName {
   db_backup: DbBackupTemplateData;
   argocd: ArgoCdTemplateData;
   statuscake: StatusCakeTemplateData;
+  error: ErrorTemplateData;
 }
 
 export interface TextContent {
@@ -170,6 +179,12 @@ export interface StatusCakeTemplateContent {
   data: StatusCakeTemplateData;
 }
 
+export interface ErrorTemplateContent {
+  kind: 'template';
+  template: 'error';
+  data: ErrorTemplateData;
+}
+
 export type TemplateContent =
   | GenericTemplateContent
   | GitHubPrTemplateContent
@@ -178,7 +193,8 @@ export type TemplateContent =
   | UptimeTemplateContent
   | DbBackupTemplateContent
   | ArgoCdTemplateContent
-  | StatusCakeTemplateContent;
+  | StatusCakeTemplateContent
+  | ErrorTemplateContent;
 
 export interface CardContent {
   kind: 'card';
